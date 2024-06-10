@@ -1,0 +1,51 @@
+body {
+    color: #000 !important;
+    background: #fff !important;
+}
+button {
+    background: #fff !important;
+    border-color: #007bff !important;
+    color: #000 !important;
+}
+input, select, textarea, label, span {
+    color: #000 !important;
+}
+.sidebar-nav, .navbar-header {
+	background: #fff !important;
+}
+.app-navbar .sidebar-nav ul.metismenu li.active {
+    background: #007bff !important;
+}
+.app-navbar .sidebar-nav ul.metismenu li a:hover {
+    background: #007bff !important;
+    color: #fff !important;
+}
+.app-navbar .sidebar-nav ul.metismenu li a:focus, .app-navbar .sidebar-nav ul.metismenu li a:hover {
+    background: #007bff !important;
+    color: #fff;
+    transition: all .3s ease-out;
+}
+.app-navbar .sidebar-nav ul.metismenu li.active ul.custom-style li a {
+    background: #fff !important;
+    color: #a2a5bd;
+}
+.app-navbar .sidebar-nav ul.metismenu li.active ul.custom-style li a:hover {
+    color: #007bff !important;
+}
+.app-navbar .sidebar-nav ul.metismenu li a, ul li a {
+    color: #000 !important;
+}
+.app-navbar .sidebar-nav ul.metismenu li.active ul li.active a {
+    color: #007bff !important;
+}
+.text-primary {
+    color: #007bff !important;
+}
+.swal2-actions .swal2-confirm {
+    background-color: #fff !important;
+    border-color: #007bff !important;
+    color: #000 !important;
+}
+.swal2-popup {
+    border-radius: 0px !important;
+}
