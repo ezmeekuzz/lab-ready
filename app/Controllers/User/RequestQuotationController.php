@@ -63,8 +63,8 @@ class RequestQuotationController extends SessionController
                     $newName = bin2hex(random_bytes(8)) . '.' . $extension;  // Generate random name with the appropriate extension
                     $file->move($uploadPath, $newName);
     
-                    // Call Python script with uploaded file path
-                    $stlFilePath = $this->convertToStl($uploadPath . DIRECTORY_SEPARATOR . $newName, $extension);
+                    // Call FreeCAD-based conversion method
+                    $stlFilePath = $this->convertToSTL($uploadPath . DIRECTORY_SEPARATOR . $newName);
                     if ($stlFilePath) {
                         $fileData = [
                             'request_quotation_id' => $requestQuotationId,
@@ -99,43 +99,55 @@ class RequestQuotationController extends SessionController
     
         return $this->response->setJSON($response);
     }
-    
-    // New function to call Python script
-    private function convertToStl(string $filePath, string $extension): ?string
+
+    private function convertToSTL($filePath)
     {
-        $converterPath = FCPATH . 'converter' . DIRECTORY_SEPARATOR . 'convert_to_stl.py';
-        $stlFilePath = str_replace('.' . $extension, '.stl', $filePath);
-        
-        $command = "python \"$converterPath\" \"$filePath\" \"$stlFilePath\"";
-        
-        log_message('debug', 'Executing command: ' . $command);
-        
-        // Execute the command and capture the output and the return status
-        $output = shell_exec($command . ' 2>&1'); // Redirect stderr to stdout
-        $status = shell_exec("echo $?"); // Capture the exit status
-        
-        log_message('debug', 'Command output: ' . $output);
-        log_message('debug', 'Command exit status: ' . $status);
-        
-        if (!file_exists($stlFilePath)) {
-            log_message('error', 'STL conversion failed for file: ' . $filePath . '. Output: ' . $output . '. Status: ' . $status);
-            return null;
+        $outputPath = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'quotation-files';
+        $outputFile = $outputPath . DIRECTORY_SEPARATOR . bin2hex(random_bytes(8)) . '.stl';
+        $freecadCmd = 'C:\\Program Files\\FreeCAD 0.21\\bin\\FreeCADCmd.exe'; // Use full path for now
+    
+        // Ensure the FreeCADCmd.exe is available
+        if (!file_exists($freecadCmd)) {
+            throw new \RuntimeException("FreeCADCmd.exe not found at $freecadCmd");
         }
-        
-        return $stlFilePath;
-    }
+    
+        // Use double backslashes to avoid Unicode decoding errors
+        $escapedFilePath = str_replace('\\', '\\\\', $filePath);
+        $escapedOutputFile = str_replace('\\', '\\\\', $outputFile);
+    
+        $command = "\"$freecadCmd\" -c \"import Part; doc = FreeCAD.newDocument(); obj = doc.addObject('Part::Feature'); obj.Shape = Part.read('$escapedFilePath'); doc.recompute(); Part.export([obj], '$escapedOutputFile');\"";
+    
+        // Log the command
+        $logger = \Config\Services::logger();
+        $logger->info('Current PATH: ' . getenv('PATH'));
+        $logger->info('Executing FreeCAD command: ' . $command);
+    
+        $output = shell_exec($command . ' 2>&1');
+    
+        // Log the command output
+        $logger->info('FreeCAD command output: ' . $output);
+    
+        if (!file_exists($outputFile)) {
+            $logger->error('FreeCAD conversion failed: ' . $output);
+            throw new \RuntimeException("Failed to convert the file. Command output: " . $output);
+        }
+    
+        return $outputFile;
+    }       
+
     public function quotationLists()
     {
         $quotationItemModel = new QuotationItemsModel();
 
         $quotationList = $quotationItemModel
-        ->join('request_quotations', 'request_quotations.request_quotation_id=quotation_items.request_quotation_id', 'left')
-        ->where('request_quotations.user_id', session()->get('user_user_id'))
-        ->where('request_quotations.status', 'Ongoing')
-        ->findAll();
+            ->join('request_quotations', 'request_quotations.request_quotation_id=quotation_items.request_quotation_id', 'left')
+            ->where('request_quotations.user_id', session()->get('user_user_id'))
+            ->where('request_quotations.status', 'Ongoing')
+            ->findAll();
 
         return $this->response->setJSON($quotationList);
     }
+
     public function submitQuotations()
     {
         $request = service('request');
@@ -219,6 +231,7 @@ class RequestQuotationController extends SessionController
         log_message('error', 'Invalid request type');
         return $this->failForbidden('Invalid request type');
     }    
+
     public function delete($id)
     {
         $QuotationItemsModel = new QuotationItemsModel();

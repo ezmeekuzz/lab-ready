@@ -29,6 +29,7 @@
                                 <li class="list-group-item fs-5"><i class="fa fa-check-circle"></i> PEI (Ultem)</li>
                                 <li class="list-group-item fs-5"><i class="fa fa-check-circle"></i> PMMA (Acrylic)</li>
                                 <li class="list-group-item fs-5"><i class="fa fa-check-circle"></i> POM (Acetal/Delrin)</li>
+                                <li class="list-group-item fs-5"><i class="fa fa-check-circle"></i> Radel (PPSU)</li>
                             </ul>
                         </div>
                     </div>
