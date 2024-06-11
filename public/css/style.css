@@ -47,7 +47,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: url('../images/modern-healthcare-experts-working-with-advanced-technology-generated-by-ai.webp'); /* Placeholder image URL */
+    background-image: url('../images/accessible-image.webp'); /* Placeholder image URL */
     background-size: cover;
     background-position: center;
     padding: 0; /* Remove padding if any */
@@ -149,7 +149,7 @@ body {
     background: transparent !important;
 }
 .founder-section {
-    background-image: url('../images/modern-healthcare-experts-working-with-advanced-technology-generated-by-ai.webp'); /* Placeholder image URL */
+    background-image: url('../images/accessible-image.webp'); /* Placeholder image URL */
     background-size: cover;
     background-position: center;
     color: white;
