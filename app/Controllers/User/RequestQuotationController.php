@@ -50,7 +50,8 @@ class RequestQuotationController extends SessionController
     
         $response = [
             'success' => 'Files uploaded successfully.',
-            'files' => []
+            'files' => [],
+            'conversion_errors' => [] // To store conversion errors
         ];
     
         foreach ($files['files'] as $file) {
@@ -64,20 +65,23 @@ class RequestQuotationController extends SessionController
                     $file->move($uploadPath, $newName);
     
                     // Call FreeCAD-based conversion method
-                    $stlFilePath = $this->convertToSTL($uploadPath . DIRECTORY_SEPARATOR . $newName);
-                    if ($stlFilePath) {
-                        $fileData = [
-                            'request_quotation_id' => $requestQuotationId,
-                            'filename' => $originalName,
-                            'filetype' => $extension,
-                            'file_location' => 'uploads/quotation-files/' . $newName, // Store original file location
-                            'stl_location' => 'uploads/quotation-files/' . basename($stlFilePath), // Store converted STL file location
-                        ];
-                        $quotationItemsModel->insert($fileData);
-                        $response['files'][] = $fileData;
-                    } else {
-                        log_message('error', 'Error converting ' . $extension . ' file: ' . $file->getName());
+                    try {
+                        $stlFilePath = $this->convertToSTL($uploadPath . DIRECTORY_SEPARATOR . $newName);
+                    } catch (\Exception $e) {
+                        log_message('error', 'Error converting ' . $extension . ' file: ' . $file->getName() . '. Error: ' . $e->getMessage());
+                        $response['conversion_errors'][] = 'Error converting ' . $extension . ' file: ' . $file->getName();
+                        $stlFilePath = null;
                     }
+    
+                    $fileData = [
+                        'request_quotation_id' => $requestQuotationId,
+                        'filename' => $originalName,
+                        'filetype' => $extension,
+                        'file_location' => 'uploads/quotation-files/' . $newName, // Store original file location
+                        'stl_location' => $stlFilePath ? 'uploads/quotation-files/' . basename($stlFilePath) : null, // Store converted STL file location if available
+                    ];
+                    $quotationItemsModel->insert($fileData);
+                    $response['files'][] = $fileData;
                 } else {
                     // For non-STEP, non-IGS files, just upload without conversion
                     $file->move($uploadPath, $file->getName());
@@ -104,7 +108,7 @@ class RequestQuotationController extends SessionController
     {
         $outputPath = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'quotation-files';
         $outputFile = $outputPath . DIRECTORY_SEPARATOR . bin2hex(random_bytes(8)) . '.stl';
-        $freecadCmd = 'C:\\Program Files\\FreeCAD 0.21\\bin\\FreeCADCmd.exe'; // Use full path for now
+        $freecadCmd = ' '; // Use full path for now
     
         // Ensure the FreeCADCmd.exe is available
         if (!file_exists($freecadCmd)) {

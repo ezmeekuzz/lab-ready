@@ -51,7 +51,7 @@
                 <div class="col-lg-6 col-md-12 order-lg-2 order-md-1 text-center text-md-start">
                     <div class="center-content">
                         <h1 class="text-white fw-bold display-4">Fit and Finish Services</h1>
-                        <p class="text-white fs-5 fw-bold">In addition to providing prototype components, we can also provide fit, finish, and assembly services for more complex instruments. Combine this with the a la’ carte in-house services offered below, and the result in a ready to use instrument for lab or bench top testing.</p>
+                        <p class="text-white fs-5 fw-bold">In addition to providing prototype components, we can also provide fit, finish, and assembly services for more complex instruments. Combine this with the a la’ carte in-house services offered below, and the result is a ready to use instrument for lab or bench top testing.</p>
                     </div>
                 </div>
             </div>

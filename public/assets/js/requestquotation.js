@@ -30,40 +30,41 @@ $(document).ready(function() {
         fileInput.click();
     });
 
+
     fileInput.addEventListener('change', function() {
         handleFiles(fileInput.files);
     });
-
+    
     function handleFiles(files) {
         fileList.innerHTML = '';
-
+    
         let invalidFiles = [];
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const fileExtension = file.name.split('.').pop().toLowerCase();
-
+    
             if (!acceptedFileTypes.includes(fileExtension)) {
                 invalidFiles.push(file.name);
                 continue;
             }
-
+    
             const fileItem = document.createElement('div');
             fileItem.className = 'file-item';
             fileItem.textContent = `File Name: ${file.name}, File Size: ${(file.size / 1024).toFixed(2)} KB`;
             fileList.appendChild(fileItem);
         }
-
+    
         if (invalidFiles.length > 0) {
             Swal.fire('Error', `Invalid file type(s): ${invalidFiles.join(', ')}. Only STEP, Parasolid, IGES, and PDF files are allowed.`, 'error');
             return;
         }
-
+    
         let formData = new FormData();
-
+    
         for (let i = 0; i < files.length; i++) {
             formData.append('files[]', files[i]);
         }
-
+    
         Swal.fire({
             title: 'Uploading...',
             text: 'Please wait while we upload your files.',
@@ -72,7 +73,7 @@ $(document).ready(function() {
                 Swal.showLoading();
             }
         });
-
+    
         $.ajax({
             url: '/requestquotation/uploadFiles',
             type: 'POST',
@@ -80,7 +81,11 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(response) {
-                Swal.fire('Success', response.success, 'success').then(() => {
+                let message = response.success;
+                if (response.conversion_errors.length > 0) {
+                    message += "\n\nHowever, there were errors converting the following files:\n" + response.conversion_errors.join("\n");
+                }
+                Swal.fire('Success', message, 'success').then(() => {
                     getQuotationLists();
                     $('#requestquotation')[0].reset();
                     fileList.innerHTML = '';
