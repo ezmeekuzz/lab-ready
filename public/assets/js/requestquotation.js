@@ -30,7 +30,6 @@ $(document).ready(function() {
         fileInput.click();
     });
 
-
     fileInput.addEventListener('change', function() {
         handleFiles(fileInput.files);
     });
@@ -81,11 +80,9 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(response) {
-                let message = response.success;
-                if (response.conversion_errors.length > 0) {
-                    message += "\n\nHowever, there were errors converting the following files:\n" + response.conversion_errors.join("\n");
-                }
-                Swal.fire('Success', message, 'success').then(() => {
+                Swal.close();
+                console.log('Success response:', response);
+                Swal.fire('Success', response.success, 'success').then(() => {
                     getQuotationLists();
                     $('#requestquotation')[0].reset();
                     fileList.innerHTML = '';
@@ -94,6 +91,7 @@ $(document).ready(function() {
             },
             error: function(response) {
                 Swal.close();
+                console.error('Error response:', response);
                 let errors = response.responseJSON.errors;
                 let errorMessages = Object.values(errors).join("\n");
                 Swal.fire('Error', errorMessages, 'error');
@@ -305,6 +303,12 @@ $(document).ready(function() {
                         } else if (item.filetype === 'PDF') {
                             console.log("Appending PDF");
                             stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/PDF-icon.png" alt="PDF Icon" style="width: 100%;">';
+                        } else if (item.filetype === 'STEP' && item.file_location === null) {
+                            console.log("Appending STEP");
+                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/STEP-icon.png" alt="PDF Icon" style="width: 100%;">';
+                        }  else if (item.filetype === 'IGS' && item.file_location === null) {
+                            console.log("Appending STEP");
+                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/IGS-icon.webp" alt="PDF Icon" style="width: 100%;">';
                         } else {
                             if (item.stl_location !== null) {
                                 console.log("Initializing STL Viewer");

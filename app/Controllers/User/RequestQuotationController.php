@@ -108,7 +108,7 @@ class RequestQuotationController extends SessionController
     {
         $outputPath = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'quotation-files';
         $outputFile = $outputPath . DIRECTORY_SEPARATOR . bin2hex(random_bytes(8)) . '.stl';
-        $freecadCmd = ' '; // Use full path for now
+        $freecadCmd = 'C:\\Program Files\\FreeCAD 0.21\\bin\\FreeCADCmd.exe'; // Use full path for now
     
         // Ensure the FreeCADCmd.exe is available
         if (!file_exists($freecadCmd)) {
