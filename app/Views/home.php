@@ -25,7 +25,7 @@
                     <img src="./images/Metal_Foam_01.webp" class="card-img-top" alt="Card image">
                     <div class="card-body bg-black text-white text-lg-start text-center">
                         <h4 class="card-title mb-0">3D Printing Metal And Plastic</h4>
-                        <a href="/register" class="btn btn-outline-light btn-lg mt-2"><i class="fa fa-edit"></i> Get Quote</a>
+                        <a href="/user/login" class="btn btn-outline-light btn-lg mt-2"><i class="fa fa-edit"></i> Get Quote</a>
                     </div>
                 </div>
             </div>
@@ -34,7 +34,7 @@
                     <img src="./images/AdobeStock_172041052-scaled.webp" class="card-img-top" alt="Card image">
                     <div class="card-body bg-black text-white text-lg-start text-center">
                         <h4 class="card-title mb-0">CNC Machining</h4>
-                        <a href="/register" class="btn btn-outline-light btn-lg mt-2"><i class="fa fa-edit"></i> Get Quote</a>
+                        <a href="/user/login" class="btn btn-outline-light btn-lg mt-2"><i class="fa fa-edit"></i> Get Quote</a>
                     </div>
                 </div>
             </div>

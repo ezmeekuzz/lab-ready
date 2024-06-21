@@ -169,13 +169,19 @@ $(document).ready(function () {
                             console.log("STL Container found:", stlContainer);
                             if (item.filetype == 'SLDPRT') {
                                 console.log("Appending SLDPRT");
-                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/SLDPRT-icon.png" alt="SLDPRT Icon" style="width: 100%;">';
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/SLDPRT-icon.png" alt="SLDPRT Icon" class="file-icon">';
                             } else if (item.filetype === 'X_T') {
                                 console.log("Appending X_T");
-                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/X_T-icon.png" alt="X_T Icon" style="width: 100%;">';
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/X_T-icon.png" alt="X_T Icon" class="file-icon">';
                             } else if (item.filetype === 'PDF') {
                                 console.log("Appending PDF");
-                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/PDF-icon.png" alt="PDF Icon" style="width: 100%;">';
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/PDF-icon.png" alt="PDF Icon" class="file-icon">';
+                            } else if (item.filetype === 'STEP' && item.stl_location == null) {
+                                console.log("Appending STEP");
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/STEP-icon.png" alt="PDF Icon" class="file-icon">';
+                            }  else if (item.filetype === 'IGS' && item.stl_location == null) {
+                                console.log("Appending IGS");
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/IGS-icon.webp" alt="PDF Icon" class="file-icon">';
                             } else {
                                 if (item.stl_location !== null) {
                                     console.log("Initializing STL Viewer");

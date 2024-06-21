@@ -149,7 +149,7 @@ $(document).ready(function() {
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-lg-6 mb-5">
-                                            <div id="${stlContId}" style="height: 150px;"></div>
+                                            <div id="${stlContId}" class="file-container" style="height: 150px;"></div>
                                         </div>
                                         <div class="col-lg-6">
                                             <div class="form-group" hidden>
@@ -296,19 +296,19 @@ $(document).ready(function() {
                         console.log("STL Container found:", stlContainer);
                         if (item.filetype == 'SLDPRT') {
                             console.log("Appending SLDPRT");
-                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/SLDPRT-icon.png" alt="SLDPRT Icon" style="width: 100%;">';
+                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/SLDPRT-icon.png" alt="SLDPRT Icon" class="file-icon">';
                         } else if (item.filetype === 'X_T') {
                             console.log("Appending X_T");
-                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/X_T-icon.png" alt="X_T Icon" style="width: 100%;">';
+                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/X_T-icon.png" alt="X_T Icon" class="file-icon">';
                         } else if (item.filetype === 'PDF') {
                             console.log("Appending PDF");
-                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/PDF-icon.png" alt="PDF Icon" style="width: 100%;">';
-                        } else if (item.filetype === 'STEP' && item.file_location === null) {
+                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/PDF-icon.png" alt="PDF Icon" class="file-icon">';
+                        } else if (item.filetype === 'STEP' && item.stl_location == null) {
                             console.log("Appending STEP");
-                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/STEP-icon.png" alt="PDF Icon" style="width: 100%;">';
-                        }  else if (item.filetype === 'IGS' && item.file_location === null) {
-                            console.log("Appending STEP");
-                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/IGS-icon.webp" alt="PDF Icon" style="width: 100%;">';
+                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/STEP-icon.png" alt="PDF Icon" class="file-icon">';
+                        }  else if (item.filetype === 'IGS' && item.stl_location == null) {
+                            console.log("Appending IGS");
+                            stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/IGS-icon.webp" alt="PDF Icon" class="file-icon">';
                         } else {
                             if (item.stl_location !== null) {
                                 console.log("Initializing STL Viewer");

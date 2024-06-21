@@ -94,6 +94,26 @@
         canvas {
             display: block; 
         }
+        .file-icon {
+            max-width: 100%;
+        }
+        @media (min-width: 768px) {
+            .file-container {
+                margin-bottom: 150px;
+            }
+            .file-icon {
+                max-width: 60%;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .file-container {
+                margin-bottom: 150px;
+            }
+            .file-icon {
+                max-width: 60%;
+            }
+        }
     </style>
 </head>
 
