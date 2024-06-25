@@ -159,7 +159,7 @@ $(document).ready(function() {
                                             </div>
                                             <div class="form-group">
                                                 <select class="form-control" name="quotetype" id="${quoteTypeId}">
-                                                    <option hidden>Select a quote type</option>
+                                                    <option hidden>Select Manufacturing Service</option>
                                                     <option disabled></option>
                                                     <option value="3D Printing">3D Printing</option>
                                                     <option value="CNC Machine">CNC Machine</option>

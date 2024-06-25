@@ -67,3 +67,6 @@ $routes->get('/materials-and-surface-finishes', 'MaterialsAndSurfaceFinishesCont
 $routes->get('/register', 'RegisterController::index');
 $routes->post('/register/insert', 'RegisterController::insert');
 $routes->post('/subscribers/insert', 'SubscribersController::insert');
+$routes->get('/privacy-policy', 'PrivacyPolicyController::index');
+$routes->get('/terms-and-conditions', 'TermsAndConditionsController::index');
+$routes->get('/refund-and-cancellation-policy', 'RefundAndCancellationPolicyController::index');
