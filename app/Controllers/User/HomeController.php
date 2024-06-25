@@ -38,7 +38,7 @@ class HomeController extends BaseController
             session()->set('user_usertype', $result['usertype']);
             session()->set('UserLoggedIn', true);
             
-            $redirect = '/quotations';
+            $redirect = '/';
 
             // Prepare response
             $response = [

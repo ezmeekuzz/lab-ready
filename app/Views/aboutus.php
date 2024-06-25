@@ -1,15 +1,10 @@
 <?=$this->include('header');?>
 <section class="jumbotron-container">
     <div class="jumbotron">
-        <div class="container-fluid">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-6 col-md-12">
-                        <h1 class="display-1 fw-bold text-start">Lab Ready</h1>
-                        <p class="lead text-start">Through trial and error, we have assembled a great group of shops that have proven they can provide great quality products at great prices with very reasonable lead times.</p>
-                    </div>
-                </div>
-            </div>
+        <div class="overlay"></div>
+        <div class="content">
+            <h1 class="display-1 fw-bold">Lab Ready</h1>
+            <p class="lead">Through trial and error, we have assembled a great group of shops that have proven they can provide great quality products at great prices with very reasonable lead times.</p>
         </div>
     </div>
 </section>

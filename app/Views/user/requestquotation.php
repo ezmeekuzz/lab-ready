@@ -40,7 +40,7 @@
                                 <div class="form-group">
                                     <label for="invoicefile">Drop Files</label>
                                     <div class="upload-area" id="uploadArea">
-                                        <h2>Drag & Drop your files here</h2>
+                                        <h2>Drag & Drop CAD Files (STEP, IGES and X_T Only)</h2>
                                         <p>or</p>
                                         <button type="button" id="fileSelectBtn">Select Files</button>
                                         <input type="file" id="fileInput" name="files" multiple hidden accept=".step,.x_t,.iges,.igs,.pdf,.STEP,.X_T,.IGES,.IGS,.PDF">

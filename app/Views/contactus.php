@@ -1,14 +1,9 @@
 <?=$this->include('header');?>
 <section class="jumbotron-container">
     <div class="jumbotron">
-        <div class="container-fluid">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-6 col-md-12">
-                        <h1 class="display-1 fw-bold text-start">Contact Us</h1>
-                    </div>
-                </div>
-            </div>
+        <div class="overlay"></div>
+        <div class="content">
+            <h1 class="display-1 fw-bold">Contact Us</h1>
         </div>
     </div>
 </section>
@@ -16,11 +11,11 @@
     <div class="container">
         <div class="row mt-3">
             <div class="col-lg-6 col-md-12">
-                <img src="./images/machine-shop.webp" alt="" class="img-fluid rounded">
+                <!--<img src="./images/machine-shop.webp" alt="" class="img-fluid rounded">-->
             </div>
             <div class="col-lg-6 col-md-12">
-                <h1 class="display-4 fw-bold">The Results Are Real</h1>
-                <p class="fs-5">For any inquiries, questions or commendations fill out the following form</p>
+                <!--<h1 class="display-4 fw-bold">The Results Are Real</h1>
+                <p class="fs-5">For any inquiries, questions or commendations fill out the following form</p>-->
                 <p class="fs-5"><i class="fa fa-phone"></i> 662-910-9173</p>
                 <form id="sendMessage" class="mt-4">
                     <div class="row">
@@ -51,7 +46,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <div class="g-recaptcha mb-3" data-sitekey="6LehBM0pAAAAAMk28KGdwuhB3XjbuJ0w3er0gTuj"></div>
+                        <!--<div class="g-recaptcha mb-3" data-sitekey="6LehBM0pAAAAAMk28KGdwuhB3XjbuJ0w3er0gTuj"></div>-->
                         <button type="submit" class="btn btn-lg btn-primary bg-light w-100 btn-outline-light text-black text-uppercase rounded-1">Submit</button>
                     </div>
                 </form>

@@ -16,7 +16,7 @@ class ContactUsController extends BaseController
     }
     public function sendMessage()
     {
-        $recaptchaResponse = $this->request->getVar('g-recaptcha-response');
+        /*$recaptchaResponse = $this->request->getVar('g-recaptcha-response');
         $secretKey = '6LehBM0pAAAAALnH2DU-gMZXguCX34eGf7Tf07Da'; // Replace with your secret key
         $verifyResponse = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret=' . $secretKey . '&response=' . $recaptchaResponse);
         $responseData = json_decode($verifyResponse);
@@ -24,7 +24,7 @@ class ContactUsController extends BaseController
         if (!$responseData->success) {
             // reCAPTCHA validation failed
             return json_encode(['success' => false, 'message' => 'reCAPTCHA verification failed.']);
-        }
+        }*/
         $data = [
             'fullname' => $this->request->getPost('fullName'),
             'email' => $this->request->getPost('email'),

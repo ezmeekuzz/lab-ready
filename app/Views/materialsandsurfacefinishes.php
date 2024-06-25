@@ -1,12 +1,9 @@
 <?=$this->include('header');?>
 <section class="jumbotron-container">
     <div class="jumbotron">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-lg-12 col-md-12">
-                    <h1 class="display-1 fw-bold">Materials And Surface Finishes</h1>
-                </div>
-            </div>
+        <div class="overlay"></div>
+        <div class="content">
+            <h1 class="display-1 fw-bold">Materials And Surface Finishes</h1>
         </div>
     </div>
 </section>

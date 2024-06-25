@@ -7,6 +7,9 @@ body {
 .navbar-nav {
     margin: auto;
 }
+.nav-item {
+    margin-right: 20px; /* Adjust the value to increase/decrease spacing */
+}
 .nav-link {
     color: white;
     text-transform: uppercase;
@@ -20,17 +23,63 @@ body {
     color: white !important;
 }
 .jumbotron {
-    background-image: url('../images/modern-healthcare-experts-working-with-advanced-technology-generated-by-ai.webp'); /* Placeholder image URL */
+    position: relative;
+    background-image: url('../images/AAL2.png'); /* Placeholder image URL */
     background-size: cover;
     background-position: center;
     color: white;
     text-align: center;
-    height: 400px;
+    height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 0;
 }
+
+.jumbotron .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Adjust the opacity by changing the alpha value */
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+.jumbotron .content {
+    position: relative;
+    z-index: 1;
+}
+/*.contactus {
+    position: relative;
+    background-image: url('../images/AAL2.png'); 
+    background-size: cover;
+    background-position: center;
+    color: white;
+    text-align: center;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0;
+}
+
+.contactus::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); 
+    z-index: 1;
+}
+
+.contactus h1 {
+    position: relative;
+    z-index: 2;
+}*/
+
 .fit-and-finish-services {
     height: 400px;
     display: flex;
@@ -116,7 +165,7 @@ body {
     }
 }
 .card-img-top {
-    height: 550px; /* Adjusted for smaller screens */
+    height: 450px; /* Adjusted for smaller screens */
     object-fit: cover;
 }
 .card-body {
@@ -161,4 +210,7 @@ body {
 .contact-content textarea::placeholder {
     color: #888 !important; /* Your desired color */
     opacity: 1; /* Firefox applies default opacity; include this to override */
+}
+.manufacturing-services a:hover {
+    color: #fff;
 }

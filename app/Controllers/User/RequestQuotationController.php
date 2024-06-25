@@ -60,7 +60,7 @@ class RequestQuotationController extends SessionController
                 $extension = strtoupper(pathinfo($file->getName(), PATHINFO_EXTENSION));
                 
                 // Check for STEP, IGS, or X_T extension
-                if (in_array($extension, ['STEP', 'IGS'])) {
+                if (in_array($extension, ['STEP', 'IGS', 'X_T'])) {
                     $newName = bin2hex(random_bytes(8)) . '.' . $extension;  // Generate random name with the appropriate extension
                     $file->move($uploadPath, $newName);
     
@@ -137,7 +137,7 @@ class RequestQuotationController extends SessionController
         }
     
         return $outputFile;
-    }       
+    }
 
     public function quotationLists()
     {

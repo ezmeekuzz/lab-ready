@@ -8,7 +8,6 @@ $(document).ready(function() {
 
     const materials3DPrinting = ['Nylon', 'ABS', 'PETG', 'Aluminum', 'Stainless Steel', 'Titanium'];
     const materialsCNCMachine = ['ABS', 'PA (Nylon)', 'Polycarbonate', 'PEEK', 'PEI (Ultem)', 'PMMA (Acrylic)', 'POM (Acetal/Delrin)', 'Aluminum', 'Stainless Steel', 'Titanium'];
-    const materialsMetalSurfaceFinishes = ['Aluminum anodizing', 'Titanium anodizing', 'DLC (diamond like coating)'];
 
     uploadArea.addEventListener('dragover', function(event) {
         event.preventDefault();
@@ -164,7 +163,6 @@ $(document).ready(function() {
                                                     <option disabled></option>
                                                     <option value="3D Printing">3D Printing</option>
                                                     <option value="CNC Machine">CNC Machine</option>
-                                                    <option value="Metal Surface Finishes">Metal Surface Finishes</option>
                                                 </select>
                                             </div>
                                             <div class="form-group">
@@ -173,7 +171,8 @@ $(document).ready(function() {
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label for="${printFileId}">Print File</label>
+                                                <span class="text-danger">If Fit, Finish and Assembly is required. Please upload assembly print here.</span>
+                                                <label for="${printFileId}">Assembly Print File</label>
                                                 <div class="custom-file">
                                                     <label class="custom-file-label" for="${printFileId}">Choose file</label>
                                                     <input type="file" class="custom-file-input" id="${printFileId}" name="printFile" accept="application/pdf">
@@ -199,6 +198,11 @@ $(document).ready(function() {
                     `;
 
                     allFormsHtml += formHtml;
+                });
+
+                $(document).on('change', '.custom-file-input', function() {
+                    var file = this.files[0].name;
+                    $(this).siblings('.custom-file-label').text(file.substring(0, 20));
                 });
 
                 if (response.length > 0) {
@@ -297,7 +301,7 @@ $(document).ready(function() {
                         if (item.filetype == 'SLDPRT') {
                             console.log("Appending SLDPRT");
                             stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/SLDPRT-icon.png" alt="SLDPRT Icon" class="file-icon">';
-                        } else if (item.filetype === 'X_T') {
+                        } else if (item.filetype === 'X_T' && item.stl_location == null) {
                             console.log("Appending X_T");
                             stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/X_T-icon.png" alt="X_T Icon" class="file-icon">';
                         } else if (item.filetype === 'PDF') {
@@ -353,8 +357,6 @@ $(document).ready(function() {
             options = materials3DPrinting;
         } else if (quoteType === 'CNC Machine') {
             options = materialsCNCMachine;
-        } else if (quoteType === 'Metal Surface Finishes') {
-            options = materialsMetalSurfaceFinishes;
         }
 
         options.forEach((material) => {

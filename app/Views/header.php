@@ -33,8 +33,13 @@
                     </ul>
                 </div>
                 <div class="d-flex ms-auto">
+                    <?php if(session()->has('user_user_id')) : ?>
+                    <a href="/user/logout" class="btn btn-outline-light btn-lg me-2">Logout</a>
+                    <a href="/request-quotation" class="btn btn-light btn-lg">Quote Portal</a>
+                    <?php else : ?>
                     <a href="/user/login" class="btn btn-outline-light btn-lg me-2">Login</a>
                     <a href="/register" class="btn btn-light btn-lg">Register</a>
+                    <?php endif; ?>
                 </div>
             </div>
         </nav>
