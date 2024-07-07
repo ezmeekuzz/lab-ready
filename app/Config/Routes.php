@@ -35,6 +35,7 @@ $routes->post('/subscribersmasterlist/getData', 'Admin\SubscribersMasterlistCont
 $routes->delete('/subscribersmasterlist/delete/(:num)', 'Admin\SubscribersMasterlistController::delete/$1');
 $routes->get('/send-newsletter', 'Admin\SendNewsletterController::index');
 $routes->post('/sendnewsletter/sendMessage', 'Admin\SendNewsletterController::sendMessage');
+$routes->get('/download-excel-file/(:num)', 'Admin\RequestQuotationListController::downloadExcelFile/$1');
 /*Admin*/
 
 /*User*/
@@ -54,8 +55,9 @@ $routes->get('/request-quotation-list', 'User\RequestQuotationListController::in
 $routes->post('/requestquotationlist/getData', 'User\RequestQuotationListController::getData');
 $routes->delete('/requestquotationlist/delete/(:num)', 'User\RequestQuotationListController::delete/$1');
 $routes->get('/requestquotation/quotationLists', 'User\RequestQuotationController::quotationLists');
-$routes->post('requestquotation/submitQuotations', 'User\RequestQuotationController::submitQuotations');
-$routes->delete('requestquotation/delete/(:num)', 'User\RequestQuotationController::delete/$1');
+$routes->post('/requestquotation/submitQuotations', 'User\RequestQuotationController::submitQuotations');
+$routes->delete('/requestquotation/delete/(:num)', 'User\RequestQuotationController::delete/$1');
+$routes->get('/requestquotation/recentQuotationLists', 'User\RequestQuotationController::recentQuotationLists');
 /*User*/
 
 $routes->get('/', 'HomeController::index');
@@ -69,4 +71,5 @@ $routes->post('/register/insert', 'RegisterController::insert');
 $routes->post('/subscribers/insert', 'SubscribersController::insert');
 $routes->get('/privacy-policy', 'PrivacyPolicyController::index');
 $routes->get('/terms-and-conditions', 'TermsAndConditionsController::index');
+$routes->get('/product-pricing', 'ProductPricingController::index');
 $routes->get('/refund-and-cancellation-policy', 'RefundAndCancellationPolicyController::index');

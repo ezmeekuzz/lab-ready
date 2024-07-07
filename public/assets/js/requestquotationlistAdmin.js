@@ -13,6 +13,7 @@ $(document).ready(function () {
             },
             { "data": "fullname" },
             { "data": "email" },
+            { "data": "reference" },
             {
                 "data": "status",
                 "render": function (data) {
@@ -34,10 +35,10 @@ $(document).ready(function () {
                         <a href="#" title="Quotation List" class="quotation-list" data-id="${row.request_quotation_id}" style="color: orange;">
                             <i class="fa fa-file-text" style="font-size: 18px;"></i>
                         </a>
-                        <a href="#" title="Update Status" class="update-status" data-id="${row.request_quotation_id}" style="color: green;">
+                        <a href="#" title="Update Status" class="update-status" data-id="${row.request_quotation_id}" style="color: blue;">
                             <i class="ti ti-pencil" style="font-size: 18px;"></i>
                         </a>
-                        <a href="./${row.file_location}" download title="Download File" style="color: blue;">
+                        <a href="/download-excel-file/${row.request_quotation_id}" download title="Download Excel File" style="color: green;">
                             <i class="ti ti-download" style="font-size: 18px;"></i>
                         </a>`;
                 }
@@ -123,8 +124,12 @@ $(document).ready(function () {
                         let materialId = 'material_' + item.quotation_item_id;
                         let quantityId = 'quantity_' + item.quotation_item_id;
                         let downloadBTN = "";
+                        let downloadAssemblyBTN = "";
                         if (item.print_location !== null) {
-                            downloadBTN = `<a href="${item.print_location}" download class="btn bg-dark text-white"><i class="fa fa-download"></i> Download Print File</a>`;
+                            downloadBTN = `<a href="${item.print_location}" download class="btn bg-dark text-white mb-2"><i class="fa fa-download"></i> Download Print File</a>`;
+                        }
+                        if (item.assembly_file_location !== null) {
+                            downloadAssemblyBTN = `<a href="${item.assembly_file_location}" download class="btn bg-warning text-white mb-2"><i class="fa fa-download"></i> Download Assembly Print File</a>`;
                         }
                         // Create HTML for each item
                         let itemHtml = `
@@ -155,7 +160,8 @@ $(document).ready(function () {
                                                     <label for="quantity">Quantity</label>
                                                     <input type="text" class="form-control" name="quantity" id="${quantityId}" value="${item.quantity}" placeholder="Quantity" readonly>
                                                 </div>
-                                                ${downloadBTN}
+                                                ${downloadBTN}<br/>
+                                                ${downloadAssemblyBTN}
                                             </div>
                                         </div>
                                     </div>

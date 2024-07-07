@@ -6,6 +6,7 @@ use App\Controllers\User\SessionController;
 use CodeIgniter\Files\File;
 use App\Models\RequestQuotationModel;
 use App\Models\QuotationItemsModel;
+use App\Models\AssemblyPrintFilesModel;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\HTTP\Response;
 use CodeIgniter\API\ResponseTrait;
@@ -41,6 +42,7 @@ class RequestQuotationController extends SessionController
         } else {
             // Insert new data
             $requestQuotationModel->insert([
+                'reference' => $this->generateReference(),
                 'user_id' => session()->get('user_user_id'),
                 'status' => 'Ongoing'
             ]);
@@ -58,9 +60,9 @@ class RequestQuotationController extends SessionController
             if ($file->isValid() && !$file->hasMoved()) {
                 $originalName = $file->getName();
                 $extension = strtoupper(pathinfo($file->getName(), PATHINFO_EXTENSION));
-                
+    
                 // Check for STEP, IGS, or X_T extension
-                if (in_array($extension, ['STEP', 'IGS', 'X_T'])) {
+                if (in_array($extension, ['STEP', 'IGS', 'STL'])) {
                     $newName = bin2hex(random_bytes(8)) . '.' . $extension;  // Generate random name with the appropriate extension
                     $file->move($uploadPath, $newName);
     
@@ -81,6 +83,7 @@ class RequestQuotationController extends SessionController
                         'stl_location' => $stlFilePath ? 'uploads/quotation-files/' . basename($stlFilePath) : null, // Store converted STL file location if available
                     ];
                     $quotationItemsModel->insert($fileData);
+                    $recentQuotationItemIds[] = $quotationItemsModel->insertID();
                     $response['files'][] = $fileData;
                 } else {
                     // For non-STEP, non-IGS files, just upload without conversion
@@ -94,6 +97,7 @@ class RequestQuotationController extends SessionController
                         'stl_location' => null, // No STL location for non-STEP, non-IGS files
                     ];
                     $quotationItemsModel->insert($fileData);
+                    $recentQuotationItemIds[] = $quotationItemsModel->insertID();
                     $response['files'][] = $fileData;
                 }
             } else {
@@ -101,7 +105,24 @@ class RequestQuotationController extends SessionController
             }
         }
     
+        session()->set('recent_quotation_item_ids', $recentQuotationItemIds);
         return $this->response->setJSON($response);
+    }
+    
+    private function generateReference()
+    {
+        $user_id = session()->get('user_user_id');
+        $requestQuotationModel = new RequestQuotationModel();
+    
+        // Get today's date in YYYYMMDD format
+        $todayDate = date('Ymd');
+    
+        // Count existing requests for the user on the current date
+        $count = $requestQuotationModel->like('reference', $todayDate, 'after')->where('user_id', $user_id)->countAllResults() + 1;
+    
+        // Generate the reference in YYYYMMDD-NNN format
+        $reference = $todayDate . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        return $reference;
     }
 
     private function convertToSTL($filePath)
@@ -151,30 +172,96 @@ class RequestQuotationController extends SessionController
 
         return $this->response->setJSON($quotationList);
     }
+    public function recentQuotationLists()
+    {
+        $quotationItemModel = new QuotationItemsModel();
+    
+        // Get the recent quotation_item_ids from the session
+        $recentQuotationItemIds = session()->get('recent_quotation_item_ids');
+    
+        if (empty($recentQuotationItemIds)) {
+            return $this->response->setJSON(['error' => 'No recent quotations found.']);
+        }
+    
+        // Fetch the quotation items for the recent quotation_item_ids
+        $quotationList = $quotationItemModel
+            ->join('request_quotations', 'request_quotations.request_quotation_id=quotation_items.request_quotation_id', 'left')
+            ->where('request_quotations.user_id', session()->get('user_user_id'))
+            ->whereIn('quotation_items.quotation_item_id', $recentQuotationItemIds)
+            ->findAll();
+    
+        return $this->response->setJSON($quotationList);
+    }
 
     public function submitQuotations()
     {
+        $quotationItemsModel = new QuotationItemsModel();
+        $requestQuotationModel = new RequestQuotationModel();
+        $assemblyPrintFilesModel = new AssemblyPrintFilesModel(); // Assuming you have a model for the assembly_print_files table
+        $requestQuotation = $requestQuotationModel
+            ->where('user_id', session()->get('user_user_id'))
+            ->where('status', 'Ongoing')
+            ->first(); // Changed find() to first() to get a single record
+    
+        if (!$requestQuotation) {
+            return $this->fail('No ongoing request quotation found', ResponseInterface::HTTP_NOT_FOUND);
+        }
+    
+        $requestQuotationId = $requestQuotation['request_quotation_id']; // Assuming the primary key is 'id'
         $request = service('request');
     
         // Check if the request is AJAX
         if ($request->isAJAX()) {
-            $forms = $this->request->getPost('forms');
-            $files = $this->request->getFiles();
+            $forms = $request->getPost('forms');
+            $files = $request->getFiles();
     
             log_message('info', 'Received forms: ' . print_r($forms, true));
             log_message('info', 'Received files: ' . print_r($files, true));
     
             if (is_array($forms)) {
-                $quotationItemsModel = new QuotationItemsModel();
-                $requestQuotationModel = new RequestQuotationModel();
-    
-                // Ensure the target directory exists
+                // Ensure the target directories exist
                 $uploadPath = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'print-files' . DIRECTORY_SEPARATOR;
+                $uploadPath2 = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'assembly-files' . DIRECTORY_SEPARATOR;
+    
                 if (!is_dir($uploadPath)) {
                     if (!mkdir($uploadPath, 0777, true) && !is_dir($uploadPath)) {
-                        log_message('error', 'Failed to create directory for uploads');
-                        return $this->fail('Failed to create directory for uploads', ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
+                        log_message('error', 'Failed to create directory for print uploads');
+                        return $this->fail('Failed to create directory for print uploads', ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
                     }
+                }
+    
+                if (!is_dir($uploadPath2)) {
+                    if (!mkdir($uploadPath2, 0777, true) && !is_dir($uploadPath2)) {
+                        log_message('error', 'Failed to create directory for assembly uploads');
+                        return $this->fail('Failed to create directory for assembly uploads', ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
+                    }
+                }
+    
+                // Handle multiple assembly file uploads
+                $assemblyFiles = $files['assemblyFile'] ?? [];
+                log_message('info', 'Assembly Files: ' . print_r($assemblyFiles, true));
+                $assemblyFilePaths = [];
+    
+                if (is_array($assemblyFiles)) {
+                    foreach ($assemblyFiles as $assemblyFile) {
+                        if ($assemblyFile->isValid() && !$assemblyFile->hasMoved()) {
+                            $newFileName2 = $assemblyFile->getRandomName();
+                            log_message('info', 'Moving assembly file to: ' . $uploadPath2 . $newFileName2);
+                            if (!$assemblyFile->move($uploadPath2, $newFileName2)) {
+                                log_message('error', 'Failed to upload assembly file: ' . $assemblyFile->getErrorString());
+                                return $this->fail('Failed to upload assembly file: ' . $assemblyFile->getErrorString(), ResponseInterface::HTTP_BAD_REQUEST);
+                            }
+                            $assemblyFilePaths[] = 'uploads/assembly-files/' . $newFileName2;
+                        }
+                    }
+                }
+    
+                // Save each assembly file path into the assembly_print_files table
+                foreach ($assemblyFilePaths as $path) {
+                    $assemblyPrintFilesModel->insert([
+                        'request_quotation_id' => $requestQuotationId,
+                        'assembly_print_file_location' => $path,
+                    ]);
                 }
     
                 foreach ($forms as $index => $form) {
@@ -183,7 +270,7 @@ class RequestQuotationController extends SessionController
                     $material = $form['material'] ?? null;
                     $quantity = $form['quantity'] ?? null;
                     $quotationItemId = $form['quotation_item_id'] ?? null;
-                    $printFile = $files["forms"][$index]['printFile'] ?? null;
+                    $printFile = $files['forms'][$index]['printFile'] ?? null;
     
                     log_message('info', 'Processing form index: ' . $index);
                     log_message('info', 'Part Number: ' . $partNumber);
@@ -193,11 +280,11 @@ class RequestQuotationController extends SessionController
                     log_message('info', 'Quotation Item ID: ' . $quotationItemId);
                     log_message('info', 'Print File: ' . print_r($printFile, true));
     
-                    // Handle file upload if a file is provided
+                    // Handle print file upload if a file is provided
                     $printFilePath = null;
                     if ($printFile && $printFile->isValid() && !$printFile->hasMoved()) {
                         $newFileName = $printFile->getRandomName();
-                        log_message('info', 'Moving file to: ' . $uploadPath . $newFileName);
+                        log_message('info', 'Moving print file to: ' . $uploadPath . $newFileName);
                         if (!$printFile->move($uploadPath, $newFileName)) {
                             log_message('error', 'Failed to upload print file: ' . $printFile->getErrorString());
                             return $this->fail('Failed to upload print file: ' . $printFile->getErrorString(), ResponseInterface::HTTP_BAD_REQUEST);
@@ -225,7 +312,37 @@ class RequestQuotationController extends SessionController
                     ])
                     ->update();
     
-                return $this->respond(['success' => 'Quotations submitted successfully'], ResponseInterface::HTTP_OK);
+                $response = [
+                    'success' => 'Quotations submitted successfully'
+                ];
+    
+                // Send thank you email to the user
+                $userEmail = session()->get('user_email');
+                $thankYouMessage = view('emails/thank-you');
+    
+                $email = \Config\Services::email();
+                $email->setTo($userEmail);
+                $email->setSubject('Thank you for your quotation request!');
+                $email->setMessage($thankYouMessage);
+                $email->setMailType('html');  // Ensure the email is sent as HTML
+                if ($email->send()) {
+                    log_message('info', 'Thank you email sent to user: ' . $userEmail);
+                } else {
+                    log_message('error', 'Failed to send thank you email to user: ' . $userEmail);
+                }
+
+                // Send email to additional recipient
+                $email->setTo('rustomcodilan@gmail.com');
+                $email->setSubject('You received a new quotation!');
+                $email->setMessage($thankYouMessage);
+                $email->setMailType('html');  // Ensure the email is sent as HTML
+                if ($email->send()) {
+                    log_message('info', 'Thank you email sent to additional recipient: ' . $additionalEmail);
+                } else {
+                    log_message('error', 'Failed to send thank you email to additional recipient: ' . $additionalEmail);
+                }
+    
+                return $this->respond($response, ResponseInterface::HTTP_OK);
             } else {
                 log_message('error', 'Invalid data format');
                 return $this->fail('Invalid data format', ResponseInterface::HTTP_BAD_REQUEST);
@@ -234,7 +351,8 @@ class RequestQuotationController extends SessionController
     
         log_message('error', 'Invalid request type');
         return $this->failForbidden('Invalid request type');
-    }    
+    }
+    
 
     public function delete($id)
     {

@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="<?=base_url();?>assets/css/vendors.css" />
     <link rel="stylesheet" type="text/css" href="<?=base_url();?>assets/css/style.css" />
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.min.css">
     <style>
         .login {
             background-color: rgba(255, 255, 255, 0.8); /* Add transparency to the background */
@@ -30,9 +30,13 @@
                 align-items: center;
             }
         }
+        body {
+            background: url('<?=base_url();?>images/AAL2.png') center center no-repeat;
+            background-size: cover;
+        }
     </style>
 </head>
-<body class="bg-dark" style="background: url('<?=base_url();?>assets/img/login-bg.webp');">
+<body class="bg-dark">
     <div class="app">
         <div class="app-wrap">
             <div class="loader">
@@ -68,6 +72,7 @@
                                                     <button type="submit" class="btn btn-dark text-uppercase">Sign In</button>
                                                 </div>
                                             </div>
+                                            <input type="hidden" name="redirect" id="redirect" value="">
                                         </form>
                                         <div class="row">
                                             <div class="col-12 mt-3">
@@ -85,9 +90,15 @@
     </div>
     <script src="<?=base_url();?>assets/js/vendors.js"></script>
     <script src="<?=base_url();?>assets/js/app.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.all.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Check if the current URL has the redirect parameter set to "quote"
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('redirect') === 'quote') {
+                $('#redirect').val('quote');
+            }
+
             $('#signIn').submit(function(event) {
                 // Prevent default form submission
                 event.preventDefault();
@@ -110,7 +121,7 @@
                 // Send AJAX request
                 $.ajax({
                     type: 'POST',
-                    url: '/user/authenticate',
+                    url: '<?= base_url('user/authenticate'); ?>',
                     data: $('#signIn').serialize(), // Serialize form data
                     dataType: 'json',
                     beforeSend: function() {
@@ -130,7 +141,7 @@
                                 icon: 'success',
                                 title: 'Logged In',
                                 text: response.message,
-                                timer: 3000, // Display message for 5 seconds
+                                timer: 1000, // Display message for 3 seconds
                                 timerProgressBar: true,
                                 showConfirmButton: false // Hide the "OK" button
                             }).then((result) => {

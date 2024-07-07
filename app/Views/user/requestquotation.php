@@ -34,16 +34,17 @@
                         </div>
                         <div class="card-body">
                             <form class="mb-5" id="submitQuotation">
+                                <div id="assembly"></div>
                                 <div class="row" id="formsContainer"></div>
                             </form>
                             <form id="requestquotation">
                                 <div class="form-group">
                                     <label for="invoicefile">Drop Files</label>
                                     <div class="upload-area" id="uploadArea">
-                                        <h2>Drag & Drop CAD Files (STEP, IGES and X_T Only)</h2>
+                                        <h2>Drag & Drop CAD Files (STEP, IGES AND STL Only)</h2>
                                         <p>or</p>
                                         <button type="button" id="fileSelectBtn">Select Files</button>
-                                        <input type="file" id="fileInput" name="files" multiple hidden accept=".step,.x_t,.iges,.igs,.pdf,.STEP,.X_T,.IGES,.IGS,.PDF">
+                                        <input type="file" id="fileInput" name="files" multiple hidden accept=".step,.iges,.igs,.pdf,.STEP,.IGES,.IGS,.PDF">
                                         <div id="fileList"></div>
                                     </div>
                                 </div>

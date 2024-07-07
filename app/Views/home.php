@@ -13,7 +13,9 @@
         <div class="row">
             <div class="col-lg-12 text-center">
                 <h2 class="display-4 fw-bold text-black">Our Services</h2>
-                <a href="/user/request-quotation" class="btn btn-outline-light btn-lg mt-2 mb-4 bg-black px-5 py-3 fs-4"><i class="fa fa-edit"></i> Get Quote</a>
+                <a href="user/login?redirect=quote" class="btn btn-outline-light btn-lg mt-2 mb-4 bg-black px-5 py-3 fs-4">
+                    <i class="fa fa-edit"></i> Get Quote
+                </a>
             </div>
             <div class="col-lg-4 col-md-12 mb-3">
                 <div class="card">
@@ -33,7 +35,10 @@
             </div>
             <div class="col-lg-4 col-md-12 mb-3">
                 <div class="card">
-                    <img src="./images/Image_4-removebg-preview.webp" class="card-img-top" alt="Card image">
+                    <img src="./images/Image_4-removebg-preview.png" class="card-img-top" alt="Card image">
+                    <div class="p-3">
+                        <span>Assembly of ordered components using the a la' carte in -house services as needed.</span>
+                    </div>
                     <div class="card-body bg-black text-white text-lg-start text-center">
                         <h4 class="card-title mb-0">Fit, Finish, Assembly</h4>
                     </div>
@@ -67,10 +72,7 @@
             </div>
         </div>
         <div class="row mt-3">
-            <div class="col-lg-6 col-md-12">
-                <!--<img src="./images/pngwing.com-2024-04-16T164223.369.webp" alt="" class="img-fluid">-->
-            </div>
-            <div class="col-lg-6 col-md-12 d-flex flex-column mt-5">
+            <div class="col-lg-6 col-md-12 d-flex flex-column mt-5 mx-auto">
                 <h1 class="display-4">On-Site Capabilities:</h1>
                 <ul class="list-group">
                     <li class="list-group-item fs-5"><i class="fa fa-check-circle fs-5"></i> Manual Mill and Lathe</li>

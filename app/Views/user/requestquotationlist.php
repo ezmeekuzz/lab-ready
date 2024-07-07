@@ -37,6 +37,7 @@
                                 <table id="requestquotationmasterlist" class="table table-bordered">
                                     <thead>
                                         <tr>
+                                            <th>Reference</th>
                                             <th>Status</th>
                                             <th>Date Submitted</th>
                                             <th></th>
@@ -51,5 +52,24 @@
         </div>
     </div>
 </div>
+<!-- Quotation List Modal -->
+<div class="modal fade" id="quotationListModal" tabindex="-1" role="dialog" aria-labelledby="quotationListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quotationListModalLabel">Quotation List</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="quotationContainer" class="row"></div>
+            </div>
+        </div>
+    </div>
+</div>
 <?=$this->include('user/footer');?>
+<script>
+    baseURL = "<?=base_url();?>";
+</script>
 <script src="<?=base_url();?>assets/js/requestquotationlist.js"></script>

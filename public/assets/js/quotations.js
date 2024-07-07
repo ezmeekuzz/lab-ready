@@ -58,13 +58,20 @@ $(document).ready(function () {
                     },
                     onApprove: (data, actions) => {
                         return actions.order.capture().then(function (orderData) {
-                            console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
-                            const transaction = orderData.purchase_units[0].payments.captures[0];
-                            var transaction_number = transaction.id;
+                            const shipping = orderData.purchase_units[0].shipping.address;
+                            const shippingName = orderData.purchase_units[0].shipping.name.full_name;
 
                             // Create FormData
-                            var formData = new FormData();
+                            const formData = new FormData();
                             formData.append('quotationId', quotationId);
+                            formData.append('address', shipping.address_line_1);
+                            formData.append('city', shipping.admin_area_2);
+                            formData.append('state', shipping.admin_area_1);
+                            formData.append('zipcode', shipping.postal_code);
+                            formData.append('country_code', shipping.country_code);
+                            formData.append('full_name', shippingName);
+
+                            console.log(shipping);
 
                             // Send AJAX request
                             $.ajax({
@@ -115,63 +122,89 @@ $(document).ready(function () {
                             '<label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="' + productAmount + '" readonly><br>' +
                             '<label>Card Number:</label><input type="text" id="card_number" name="card_number" class="form-control" required><br>' +
                             '<label>Expiration Date (YYYY-MM):</label><input type="text" id="expiration_date" name="expiration_date" class="form-control" required><br>' +
-                            '<label>CVV:</label><input type="text" id="cvv" name="cvv" class="form-control" required><br>',
+                            '<label>CVV:</label><input type="text" id="cvv" name="cvv" class="form-control" required><br>' +
+                            '<label>Address:</label><input type="text" id="address" name="address" class="form-control" required><br>' +
+                            '<label>City:</label><input type="text" id="city" name="city" class="form-control" required><br>' +
+                            '<label>State:</label><input type="text" id="state" name="state" class="form-control" required><br>' +
+                            '<label>Zip Code:</label><input type="text" id="zipcode" name="zipcode" class="form-control" required><br>' +
+                            '<label>Phone Number:</label><input type="text" id="phonenumber" name="phonenumber" class="form-control" required><br>',
                         focusConfirm: false,
                         preConfirm: () => {
                             const cardNumber = Swal.getPopup().querySelector('#card_number').value;
                             const expirationDate = Swal.getPopup().querySelector('#expiration_date').value;
                             const cvv = Swal.getPopup().querySelector('#cvv').value;
-                
-                            if (!cardNumber || !expirationDate || !cvv) {
-                                Swal.showValidationMessage(`Please fill out all fields`);
+                            const address = Swal.getPopup().querySelector('#address').value;
+                            const city = Swal.getPopup().querySelector('#city').value;
+                            const state = Swal.getPopup().querySelector('#state').value;
+                            const zipcode = Swal.getPopup().querySelector('#zipcode').value;
+                            const phoneNumber = Swal.getPopup().querySelector('#phonenumber').value;
+
+                            if (!cardNumber || !expirationDate || !cvv || !address || !city || !state || !zipcode || !phoneNumber) {
+                                Swal.showValidationMessage(`Please enter all required fields`);
                             }
-                
+
                             return {
                                 cardNumber: cardNumber,
                                 expirationDate: expirationDate,
-                                cvv: cvv
+                                cvv: cvv,
+                                address: address,
+                                city: city,
+                                state: state,
+                                zipcode: zipcode,
+                                phoneNumber: phoneNumber,
                             };
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
+                            const formData = result.value;
+
                             $.ajax({
-                                type: "POST",
+                                type: 'POST',
                                 url: '/quotations/chargeCreditCard',
                                 data: {
-                                    amount: productAmount,
-                                    card_number: result.value.cardNumber,
-                                    expiration_date: result.value.expirationDate,
-                                    cvv: result.value.cvv
+                                    amount: $('#amount').val(),
+                                    cardNumber: formData.cardNumber,
+                                    expirationDate: formData.expirationDate,
+                                    cvv: formData.cvv,
+                                    address: formData.address,
+                                    city: formData.city,
+                                    state: formData.state,
+                                    zipcode: formData.zipcode,
+                                    phoneNumber: formData.phoneNumber,
+                                    quotationId: quotationId
                                 },
-                                success: function (data) {
-                                    if (data.success) {
+                                success: function (response) {
+                                    if (response.success) {
                                         Swal.fire({
-                                            title: 'Success!',
-                                            text: 'Payment was successful!',
+                                            title: 'Payment Successful!',
+                                            text: response.message,
                                             icon: 'success',
                                             willClose: () => {
-                                                window.location.reload();
+                                                window.location.href = "/quotations";
                                             }
                                         });
                                     } else {
                                         Swal.fire({
                                             title: 'Payment Failed!',
-                                            text: data.message,
-                                            icon: 'error'
+                                            text: response.message,
+                                            icon: 'error',
+                                            willClose: () => {
+                                                window.location.href = "/quotations";
+                                            }
                                         });
                                     }
                                 },
-                                error: function (xhr, status, error) {
+                                error: function (response) {
                                     Swal.fire({
-                                        title: 'Payment Failed!',
-                                        text: xhr.responseJSON.message || 'There was an error processing your payment.',
-                                        icon: 'error'
+                                        title: 'Payment Error!',
+                                        text: response.responseJSON.message,
+                                        icon: 'error',
                                     });
                                 }
                             });
                         }
                     });
-                });                
+                });            
             },
             error: function () {
                 console.error("Error fetching data");

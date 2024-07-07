@@ -41,6 +41,7 @@
                                             <th>User ID</th>
                                             <th>Full Name</th>
                                             <th>Email Address</th>
+                                            <th>Reference</th>
                                             <th>Status</th>
                                             <th>Date Submitted</th>
                                             <th></th>

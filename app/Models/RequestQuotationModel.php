@@ -13,7 +13,7 @@ class RequestQuotationModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'user_id', 'dateneeded', 'pastnumber', 'quantity', 'material', 'file_location', 'status', 'datesubmitted'
+        'user_id', 'reference', 'status', 'datesubmitted'
     ];
 
     protected bool $allowEmptyInserts = false;

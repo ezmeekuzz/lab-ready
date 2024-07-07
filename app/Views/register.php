@@ -30,8 +30,16 @@
                             <input type="email" class="form-control" id="email" name="email">
                         </div>
                         <div class="mb-3">
-                            <label for="email" class="form-label">Phone Number</label>
-                            <input type="email" class="form-control" id="email" name="email">
+                            <label for="phonenumber" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="phonenumber" name="phonenumber">
+                        </div>
+                        <div class="mb-3">
+                            <label for="companyname" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="companyname" name="companyname">
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" class="form-control" id="address" name="address">
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
@@ -58,9 +66,12 @@
             let fullname = $('#fullname').val();
             let email = $('#email').val();
             let password = $('#password').val();
+            let phonenumber = $('#phonenumber').val();
+            let companyname = $('#companyname').val();
+            let address = $('#address').val();
 
             // Perform client-side validation
-            if (fullname.trim() === '' || email.trim() === '' || password.trim() === '') {
+            if (fullname.trim() === '' || email.trim() === '' || password.trim() === '' || phonenumber.trim() === '' || companyname.trim() === '' || address.trim() === '') {
                 // Show error using SweetAlert2
                 Swal.fire({
                     icon: 'error',

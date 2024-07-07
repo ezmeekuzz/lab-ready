@@ -4,10 +4,10 @@ $(document).ready(function() {
     const fileSelectBtn = document.getElementById('fileSelectBtn');
     const fileList = document.getElementById('fileList');
 
-    const acceptedFileTypes = ['step', 'x_t', 'iges', 'igs', 'x_t', 'pdf', 'STEP', 'X_T', 'IGES', 'IGS', 'X_T', 'PDF'];
+    const acceptedFileTypes = ['', 'step', 'iges', 'stl', 'igs', 'pdf', 'STEP', 'IGES', 'STL', 'IGS', 'PDF'];
 
-    const materials3DPrinting = ['Nylon', 'ABS', 'PETG', 'Aluminum', 'Stainless Steel', 'Titanium'];
-    const materialsCNCMachine = ['ABS', 'PA (Nylon)', 'Polycarbonate', 'PEEK', 'PEI (Ultem)', 'PMMA (Acrylic)', 'POM (Acetal/Delrin)', 'Aluminum', 'Stainless Steel', 'Titanium'];
+    const materials3DPrinting = ['', 'Nylon', 'ABS', 'PETG', 'Aluminum', 'Stainless Steel', 'Titanium'];
+    const materialsCNCMachine = ['', 'ABS', 'PA (Nylon)', 'Polycarbonate', 'PEEK', 'PEI (Ultem)', 'PMMA (Acrylic)', 'POM (Acetal/Delrin)', 'Aluminum', 'Stainless Steel', 'Titanium'];
 
     uploadArea.addEventListener('dragover', function(event) {
         event.preventDefault();
@@ -131,7 +131,24 @@ $(document).ready(function() {
             dataType: "json",
             success: function(response) {
                 let allFormsHtml = '';
-
+                if(response.length) {
+                    let assemblyFormHtml = `
+                    <div class="col-lg-12 mb-5">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <span class="text-danger">If fit, finish and aseembly is required. Please assembly print here.</span>
+                                    <label for="assemblyFile">(Assembly Print File)</label>
+                                    <div class="custom-file">
+                                        <label class="custom-file-label" for="assemblyFile">Choose file</label>
+                                        <input type="file" class="custom-file-input" id="assemblyFile" name="assemblyFile[]" accept="application/pdf" multiple>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                    allFormsHtml += assemblyFormHtml;
+                }
                 response.forEach((item, index) => {
                     const stlContId = `stl_cont${index + 1}`;
                     const partNumberId = `partnumber${index + 1}`;
@@ -143,12 +160,12 @@ $(document).ready(function() {
                     const decreaseId = `decrease${index + 1}`;
 
                     const formHtml = `
-                        <div class="col-lg-4">
+                        <div class="col-lg-6">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-lg-6 mb-5">
-                                            <div id="${stlContId}" class="file-container" style="height: 150px;"></div>
+                                            <div id="${stlContId}" class="file-container" style="height: 250px;"></div>
                                         </div>
                                         <div class="col-lg-6">
                                             <div class="form-group" hidden>
@@ -171,8 +188,7 @@ $(document).ready(function() {
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <span class="text-danger">If Fit, Finish and Assembly is required. Please upload assembly print here.</span>
-                                                <label for="${printFileId}">Assembly Print File</label>
+                                                <label for="${printFileId}">Print File</label>
                                                 <div class="custom-file">
                                                     <label class="custom-file-label" for="${printFileId}">Choose file</label>
                                                     <input type="file" class="custom-file-input" id="${printFileId}" name="printFile" accept="application/pdf">
@@ -205,6 +221,20 @@ $(document).ready(function() {
                     $(this).siblings('.custom-file-label').text(file.substring(0, 20));
                 });
 
+                $(document).on('change', '#assemblyFile', function(event) {
+                    const inputFile = event.currentTarget;
+                    const fileCount = inputFile.files.length;
+                    const label = $(this).siblings('.custom-file-label');
+        
+                    if (fileCount > 1) {
+                        label.text(`${fileCount} files selected`);
+                    } else if (fileCount === 1) {
+                        label.text(inputFile.files[0].name);
+                    } else {
+                        label.text('Choose file');
+                    }
+                });
+
                 if (response.length > 0) {
                     allFormsHtml += `
                         <div class="col-lg-12">
@@ -221,13 +251,28 @@ $(document).ready(function() {
                     let formData = new FormData();
                     let proceed = true;
                 
+                    const assemblyFileInput = $('[name="assemblyFile[]"]')[0];
+                
+                    if (!assemblyFileInput) {
+                        console.error('Assembly file input not found');
+                        return;
+                    }
+                
+                    const assemblyFiles = assemblyFileInput.files;
+                    console.log('Assembly Files:', assemblyFiles);
+                
+                    for (let i = 0; i < assemblyFiles.length; i++) {
+                        formData.append('assemblyFile[]', assemblyFiles[i]);
+                    }
+                
                     $('#formsContainer').find('.card').each(function(index) {
                         const partNumber = $(this).find('[name="partnumber"]').val();
                         const quoteType = $(this).find('[name="quotetype"]').val();
                         const material = $(this).find('[name="material"]').val();
                         const quantity = $(this).find('[name="quantity"]').val();
                         const quotationItemId = $(this).find('[name="quotation_item_id"]').val();
-                        const printFile = $(this).find('[name="printFile"]')[0].files[0];
+                        const printFileInput = $(this).find('[name="printFile"]')[0];
+                        const printFile = printFileInput ? printFileInput.files[0] : null;
                 
                         if (!printFile && !material) {
                             Swal.fire('Error', 'Material field is required if Print File is not provided', 'error');
@@ -280,12 +325,19 @@ $(document).ready(function() {
                         },
                         error: function(response) {
                             Swal.close();
-                            let errors = response.responseJSON.errors;
-                            let errorMessages = Object.values(errors).join("\n");
-                            Swal.fire('Error', errorMessages, 'error');
+                
+                            // Check if responseJSON is available
+                            if (response.responseJSON && response.responseJSON.errors) {
+                                let errors = response.responseJSON.errors;
+                                let errorMessages = Object.values(errors).join("\n");
+                                Swal.fire('Error', errorMessages, 'error');
+                            } else {
+                                Swal.fire('Error', 'An unexpected error occurred.', 'error');
+                            }
                         }
                     });
                 });
+                                         
 
                 response.forEach((item, index) => {
                     const stlContId = `stl_cont${index + 1}`;
@@ -366,6 +418,7 @@ $(document).ready(function() {
             materialSelect.appendChild(option);
         });
     }
+
     // Call the function when the page is ready or when needed
     getQuotationLists();
 

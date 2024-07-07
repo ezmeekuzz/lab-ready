@@ -47,17 +47,40 @@ class QuotationsController extends SessionController
     public function pay()
     {
         $quotationId = $this->request->getPost('quotationId');
-        
+        $address = $this->request->getPost('address');
+        $city = $this->request->getPost('city');
+        $state = $this->request->getPost('state');
+        $zipcode = $this->request->getPost('zipcode');
         $quotationsModel = new QuotationsModel();
+        $data = [
+            'quotationnId' => $quotationId
+        ];
         $updated = $quotationsModel->where('quotation_id', $quotationId)
         ->set('status', 'Paid')
+        ->set('address', $address)
+        ->set('city', $city)
+        ->set('state', $state)
+        ->set('zipcode', $zipcode)
         ->update();
     
         if ($updated) {
-            $response = [
-                'success' => true,
-                'message' => 'Successfully Paid!',
-            ];
+            $message = view('emails/payment-success', $data);
+            // Email sending code
+            $email = \Config\Services::email();
+            $email->setTo('rustomcodilan@gmail.com');
+            $email->setSubject('We\'ve got you\'re payment!');
+            $email->setMessage($message);
+            if ($email->send()) {
+                $response = [
+                    'success' => true,
+                    'message' => 'Successfully Paid!',
+                ];
+            } else {
+                $response = [
+                    'success' => false,
+                    'message' => 'Failed to send message!',
+                ];
+            }
         } else {
             $response = [
                 'success' => false,
@@ -92,14 +115,21 @@ class QuotationsController extends SessionController
     {
         helper('form');
     
-        $config = new AuthorizeNet();
+        $address = $this->request->getPost('address');
+        $city = $this->request->getPost('city');
+        $state = $this->request->getPost('state');
+        $zipcode = $this->request->getPost('zipcode');
+        $phoneNumber = $this->request->getPost('phoneNumber');
+        $quotationId = $this->request->getPost('quotationId');
+    
+        $config = new \Config\AuthorizeNet();
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $merchantAuthentication->setName($config->apiLoginId);
         $merchantAuthentication->setTransactionKey($config->transactionKey);
     
         $creditCard = new AnetAPI\CreditCardType();
-        $creditCard->setCardNumber($this->request->getPost('card_number'));
-        $creditCard->setExpirationDate($this->request->getPost('expiration_date'));
+        $creditCard->setCardNumber($this->request->getPost('cardNumber'));
+        $creditCard->setExpirationDate($this->request->getPost('expirationDate'));
         $creditCard->setCardCode($this->request->getPost('cvv'));
     
         $paymentOne = new AnetAPI\PaymentType();
@@ -117,11 +147,41 @@ class QuotationsController extends SessionController
         $controller = new AnetController\CreateTransactionController($request);
         $response = $controller->executeWithApiResponse($config->sandbox ? \net\authorize\api\constants\ANetEnvironment::SANDBOX : \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
     
+        $data = [
+            'quotationnId' => $quotationId
+        ];
         if ($response != null) {
             if ($response->getMessages()->getResultCode() == "Ok") {
                 $tresponse = $response->getTransactionResponse();
     
                 if ($tresponse != null && $tresponse->getMessages() != null) {
+                    $quotationsModel = new QuotationsModel();
+                    $updated = $quotationsModel->where('quotation_id', $quotationId)
+                        ->set('address', $address)
+                        ->set('city', $city)
+                        ->set('state', $state)
+                        ->set('zipcode', $zipcode)
+                        ->set('phonenumber', $phoneNumber)
+                        ->set('status', 'Paid')
+                        ->update();
+                    
+                    $message = view('emails/payment-success', $data);
+                    // Email sending code
+                    $email = \Config\Services::email();
+                    $email->setTo('rustomcodilan@gmail.com');
+                    $email->setSubject('We\'ve got you\'re payment!');
+                    $email->setMessage($message);
+                    if ($email->send()) {
+                        $response = [
+                            'success' => true,
+                            'message' => 'Successfully Paid!',
+                        ];
+                    } else {
+                        $response = [
+                            'success' => false,
+                            'message' => 'Failed to send message!',
+                        ];
+                    }
                     return $this->response->setJSON([
                         'success' => true,
                         'message' => 'Transaction Successful: ' . $tresponse->getMessages()[0]->getDescription()
@@ -144,5 +204,5 @@ class QuotationsController extends SessionController
                 'message' => 'No response returned'
             ]);
         }
-    }    
+    } 
 }

@@ -21,9 +21,13 @@ class RegisterController extends BaseController
         $fullName = $this->request->getPost('fullname');
         $email = $this->request->getPost('email');
         $password = $this->request->getPost('password');
+        $phonenumber = $this->request->getPost('phonenumber');
+        $companyname = $this->request->getPost('companyname');
         $data = [
             'fullname' => $fullName,
             'email' => $email,
+            'phonenumber' => $phonenumber,
+            'companyname' => $companyname,
             'password' => $password,
             'encryptedpass' => password_hash($password, PASSWORD_BCRYPT),
             'usertype' => 'Regular User'

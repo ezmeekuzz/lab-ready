@@ -7,13 +7,10 @@
         </div>
     </div>
 </section>
-<section class="contact-content bg-black p-5 text-white">
+<section class="contact-content bg-black p-5 text-white" style="display: flex; justify-content: center;">
     <div class="container">
         <div class="row mt-3">
-            <div class="col-lg-6 col-md-12">
-                <!--<img src="./images/machine-shop.webp" alt="" class="img-fluid rounded">-->
-            </div>
-            <div class="col-lg-6 col-md-12">
+            <div class="col-lg-6 col-md-12 mx-auto">
                 <!--<h1 class="display-4 fw-bold">The Results Are Real</h1>
                 <p class="fs-5">For any inquiries, questions or commendations fill out the following form</p>-->
                 <p class="fs-5"><i class="fa fa-phone"></i> 662-910-9173</p>
@@ -21,22 +18,22 @@
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="form-group mb-3">
-                                <input type="text" class="form-control p-2 rounded-1 bg-transparent text-white" placeholder="Full Name" id="fullName" name="fullName">
+                                <input type="text" class="form-control p-2 rounded-1 bg-transparent text-white" placeholder="Full Name" id="fullName" name="fullName" value="<?=session()->get('user_fullname');?>">
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="form-group mb-3">
-                                <input type="email" class="form-control p-2 rounded-1 bg-transparent" placeholder="Email Address" id="email" name="email">
+                                <input type="email" class="form-control p-2 rounded-1 bg-transparent text-white" placeholder="Email Address" id="email" name="email" value="<?=session()->get('user_email');?>">
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="form-group mb-3">
-                                <input type="text" class="form-control p-2 rounded-1 bg-transparent" placeholder="Company Name" id="companyName" name="companyName">
+                                <input type="text" class="form-control p-2 rounded-1 bg-transparent text-white" placeholder="Company Name" id="companyName" name="companyName" value="<?=session()->get('user_companyname');?>">
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="form-group mb-3">
-                                <input type="tel" class="form-control p-2 rounded-1 bg-transparent" placeholder="Phone Number" id="phoneNumber" name="phoneNumber">
+                                <input type="tel" class="form-control p-2 rounded-1 bg-transparent text-white" placeholder="Phone Number" id="phoneNumber" name="phoneNumber" value="<?=session()->get('user_phonenumber');?>">
                             </div>
                         </div>
                         <div class="col-lg-12">

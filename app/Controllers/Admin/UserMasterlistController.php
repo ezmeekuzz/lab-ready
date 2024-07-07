@@ -5,6 +5,10 @@ namespace App\Controllers\Admin;
 use App\Controllers\Admin\SessionController;
 use CodeIgniter\HTTP\ResponseInterface;
 use App\Models\UsersModel;
+use App\Models\UserQuotationsModel;
+use App\Models\RequestQuotationModel;
+use App\Models\QuotationItemsModel;
+use App\Models\QuotationsModel;
 
 class UserMasterlistController extends SessionController
 {
@@ -23,22 +27,81 @@ class UserMasterlistController extends SessionController
     public function delete($id)
     {
         $UsersModel = new UsersModel();
+        $UserQuotationsModel = new UserQuotationsModel();
+        $RequestQuotationModel = new RequestQuotationModel();
+        $QuotationsModel = new QuotationsModel();
+        $QuotationItemsModel = new QuotationItemsModel();
     
         // Find the users by ID
         $users = $UsersModel->find($id);
     
         if ($users) {
     
-            // Delete the record from the database
+            // Get all quotation_ids from user_quotations that belong to the user
+            $quotationIds = $UserQuotationsModel->where('user_id', $id)->findColumn('quotation_id');
+    
+            // Get all request_quotation_ids from the request_quotations table that belong to the user
+            $requestQuotationIds = $RequestQuotationModel->where('user_id', $id)->findColumn('request_quotation_id');
+    
+            // Delete all user_quotations within the $id
+            $UserQuotationsModel->where('user_id', $id)->delete();
+    
+            if ($quotationIds) {
+                // Find the quotations to get the file paths
+                $quotations = $QuotationsModel->whereIn('quotation_id', $quotationIds)->findAll();
+    
+                // Delete the files associated with the quotations
+                foreach ($quotations as $quotation) {
+                    if (!empty($quotation['invoicefile'])) {
+                        $filePath = WRITEPATH . 'uploads/' . $quotation['invoicefile'];
+                        if (file_exists($filePath) && is_file($filePath)) {
+                            unlink($filePath);
+                        }
+                    }
+                }
+    
+                // Delete all quotations in the quotations table using the filtered quotation_ids
+                $QuotationsModel->whereIn('quotation_id', $quotationIds)->delete();
+            }
+    
+            if ($requestQuotationIds) {
+                // Find the quotation items to get the file paths
+                $quotationItems = $QuotationItemsModel->whereIn('request_quotation_id', $requestQuotationIds)->findAll();
+    
+                // Delete the files associated with the quotation items
+                foreach ($quotationItems as $item) {
+                    $filePaths = [
+                        'file_location' => $item['file_location'],
+                        'stl_location' => $item['stl_location'],
+                        'print_location' => $item['print_location']
+                    ];
+                    foreach ($filePaths as $key => $path) {
+                        if (!empty($path)) {
+                            $fullPath = WRITEPATH . 'uploads/' . $path;
+                            if (file_exists($fullPath) && is_file($fullPath)) {
+                                unlink($fullPath);
+                            }
+                        }
+                    }
+                }
+    
+                // Delete all quotation_items within the filtered request_quotation_ids
+                $QuotationItemsModel->whereIn('request_quotation_id', $requestQuotationIds)->delete();
+    
+                // Delete all request_quotations within the $id
+                $RequestQuotationModel->whereIn('request_quotation_id', $requestQuotationIds)->delete();
+            }
+    
+            // Delete the user record from the database
             $deleted = $UsersModel->delete($id);
     
             if ($deleted) {
                 return $this->response->setJSON(['status' => 'success']);
             } else {
-                return $this->response->setJSON(['status' => 'error', 'message' => 'Failed to delete the users from the database']);
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Failed to delete the user from the database']);
             }
         }
     
-        return $this->response->setJSON(['status' => 'error', 'message' => 'users not found']);
-    } 
+        return $this->response->setJSON(['status' => 'error', 'message' => 'User not found']);
+    }    
 }

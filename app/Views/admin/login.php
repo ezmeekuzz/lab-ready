@@ -30,9 +30,13 @@
                 align-items: center;
             }
         }
+        body {
+            background: url('<?=base_url();?>images/AAL2.png') center center no-repeat;
+            background-size: cover;
+        }
     </style>
 </head>
-<body class="bg-dark" style="background: url('<?=base_url();?>assets/img/login-bg.webp');">
+<body class="bg-dark">
     <div class="app">
         <div class="app-wrap">
             <div class="loader">
@@ -125,7 +129,7 @@
                                 icon: 'success',
                                 title: 'Logged In',
                                 text: response.message,
-                                timer: 3000, // Display message for 5 seconds
+                                timer: 1000, // Display message for 5 seconds
                                 timerProgressBar: true,
                                 showConfirmButton: false // Hide the "OK" button
                             }).then((result) => {

@@ -10,40 +10,49 @@ class HomeController extends BaseController
 {
     public function index()
     {
+        $redirectToQuotation = $this->request->getGet('redirect') == 'quote';
+
         if (session()->has('user_user_id') && session()->get('user_usertype') == 'Regular User') {
-            return redirect()->to('/quotations');
+            return redirect()->to('/request-quotation');
         }
+
         $data = [
             'title' => 'Login | Lab Ready'
         ];
         return view('user/login', $data);
     }
+
     public function authenticate()
     {
         $userModel = new UsersModel();
     
         $email = $this->request->getPost('email');
         $password = $this->request->getPost('password');
+        $redirect = $this->request->getPost('redirect');
     
         $result = $userModel
-        ->where('email', $email)
-        ->where('usertype', 'Regular User')
-        ->first();
+            ->where('email', $email)
+            ->where('usertype', 'Regular User')
+            ->first();
     
         if ($result && password_verify($password, $result['encryptedpass'])) {
             // Set session data
-            session()->set('user_user_id', $result['user_id']);
-            session()->set('user_fullname', $result['fullname']);
-            session()->set('user_email', $result['email']);
-            session()->set('user_usertype', $result['usertype']);
-            session()->set('UserLoggedIn', true);
-            
-            $redirect = '/';
-
+            session()->set([
+                'user_user_id' => $result['user_id'],
+                'user_fullname' => $result['fullname'],
+                'user_email' => $result['email'],
+                'user_phonenumber' => $result['phonenumber'],
+                'user_companyname' => $result['companyname'],
+                'user_usertype' => $result['usertype'],
+                'UserLoggedIn' => true,
+            ]);
+    
+            $redirectUrl = $redirect === 'quote' ? '/request-quotation' : '/';
+    
             // Prepare response
             $response = [
                 'success' => true,
-                'redirect' => $redirect, // Redirect URL upon successful login
+                'redirect' => $redirectUrl,
                 'message' => 'Login successful'
             ];
         } else {
@@ -56,5 +65,5 @@ class HomeController extends BaseController
     
         // Return JSON response
         return $this->response->setJSON($response);
-    }  
+    }    
 }
