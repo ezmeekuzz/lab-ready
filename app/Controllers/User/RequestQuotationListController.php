@@ -111,6 +111,37 @@ class RequestQuotationListController extends SessionController
     
         return $this->response->setJSON(['status' => 'error', 'message' => 'Request quotation not found']);
     }
+    public function getQuotationList($id)
+    {
+        $request = service('request');
     
+        // Check if the request is AJAX
+        if ($request->isAJAX()) {
+            // Assuming you have a model called QuotationListModel
+            $quotationItemsModel = new QuotationItemsModel();
+    
+            // Fetch the quotation list data
+            $data = $quotationItemsModel
+            ->join('request_quotations', 'quotation_items.request_quotation_id=request_quotations.request_quotation_id', 'left')
+            ->where('quotation_items.request_quotation_id', $id)
+            ->findAll(); // Adjust this according to your actual query or method in the model
+    
+            // Check if data is fetched successfully
+            if ($data !== null) {
+                // Prepare the response
+                $response = [
+                    'status' => 'success',
+                    'data' => $data,
+                ];
+                return $this->response->setJSON($response);
+            } else {
+                // Return error message if data retrieval fails
+                return $this->response->setStatusCode(ResponseInterface::HTTP_NOT_FOUND)->setJSON(['error' => 'No data found']);
+            }
+        } else {
+            // Return error for non-AJAX requests
+            return $this->response->setStatusCode(ResponseInterface::HTTP_FORBIDDEN)->setJSON(['error' => 'Invalid request type']);
+        }
+    }
 }
 

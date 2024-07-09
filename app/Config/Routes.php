@@ -58,6 +58,7 @@ $routes->get('/requestquotation/quotationLists', 'User\RequestQuotationControlle
 $routes->post('/requestquotation/submitQuotations', 'User\RequestQuotationController::submitQuotations');
 $routes->delete('/requestquotation/delete/(:num)', 'User\RequestQuotationController::delete/$1');
 $routes->get('/requestquotation/recentQuotationLists', 'User\RequestQuotationController::recentQuotationLists');
+$routes->get('/requestquotationlist/getQuotationList/(:num)', 'User\RequestQuotationListController::getQuotationList/$1');
 /*User*/
 
 $routes->get('/', 'HomeController::index');
