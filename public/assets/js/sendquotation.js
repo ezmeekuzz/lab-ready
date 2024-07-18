@@ -30,7 +30,7 @@ $(document).ready(function() {
         // Send AJAX request
         $.ajax({
             type: 'POST',
-            url: '/requestquotationmasterlist/insert',
+            url: '/sendquotation/insert',
             data: formData,
             processData: false,
             contentType: false,

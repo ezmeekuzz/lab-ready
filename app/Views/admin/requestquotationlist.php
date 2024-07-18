@@ -70,15 +70,15 @@
             <div class="modal-body">
                 <form id="sendquotation">
                     <div class="form-group">
-                        <label for="productname">Quote Name</label>
-                        <input type="text" name="productname" id="productname" class="form-control" placeholder="Enter Quote Name">
+                        <label for="productname">Quote Number</label>
+                        <input type="text" name="productname" id="productname" class="form-control" placeholder="Enter Quote Number">
                     </div>
                     <div class="form-group">
                         <label for="productprice">Quote Price</label>
                         <input type="text" name="productprice" id="productprice" class="form-control" placeholder="Enter Quote Price">
                     </div>
                     <div class="form-group">
-                        <label for="invoicefile">Invoice File</label>
+                        <label for="invoicefile">Quote File</label>
                         <div class="custom-file">
                             <label class="custom-file-label" for="invoicefile">Choose file</label>
                             <input type="file" class="custom-file-input" id="invoicefile" name="invoicefile" accept="application/pdf">

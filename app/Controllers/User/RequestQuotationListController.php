@@ -37,9 +37,9 @@ class RequestQuotationListController extends SessionController
 
         if($assemblyFiles) {
             foreach ($assemblyFiles as $assemblyFile) {
-                if (isset($assemblyFile['assembly_file_location'])) {
+                if (isset($assemblyFile['assembly_print_file_location'])) {
                     // Get the filename of the PDF associated with the quotation
-                    $assembly = $assemblyFile['assembly_file_location'];
+                    $assembly = $assemblyFile['assembly_print_file_location'];
 
                     // Delete the PDF file from the server
                     $filePathAssembly = FCPATH . $assembly;
@@ -111,6 +111,80 @@ class RequestQuotationListController extends SessionController
     
         return $this->response->setJSON(['status' => 'error', 'message' => 'Request quotation not found']);
     }
+
+    public function deleteItem($id)
+    {
+        $QuotationItemsModel = new QuotationItemsModel();
+        $RequestQuotationModel = new RequestQuotationModel();
+        $AssemblyPrintFilesModel = new AssemblyPrintFilesModel();
+    
+        // Find the quotation item by ID
+        $quotationItem = $QuotationItemsModel->find($id);
+    
+        if ($quotationItem) {
+            $requestQuotationId = $this->request->getPost('requestQuotationId');
+            
+            // Check if the request quotation has only one item
+            $totalItems = $QuotationItemsModel->where('request_quotation_id', $requestQuotationId)->countAllResults();
+    
+            if (isset($quotationItem['file_location'])) {
+                $requestFile = $quotationItem['file_location'];
+                $filePath = FCPATH . $requestFile;
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+            if (isset($quotationItem['stl_location'])) {
+                $requestFileSTL = $quotationItem['stl_location'];
+                $filePathSTL = FCPATH . $requestFileSTL;
+                if (file_exists($filePathSTL)) {
+                    unlink($filePathSTL);
+                }
+            }
+            if (isset($quotationItem['print_location'])) {
+                $requestFilePRINT = $quotationItem['print_location'];
+                $filePathPRINT = FCPATH . $requestFilePRINT;
+                if (file_exists($filePathPRINT)) {
+                    unlink($filePathPRINT);
+                }
+            }
+    
+            $deleted = $QuotationItemsModel->delete($id);
+            
+            if ($deleted) {
+                // If there was only one item, delete the request quotation as well
+                if ($totalItems == 1) {
+                    $assemblyFiles = $AssemblyPrintFilesModel->where('request_quotation_id', $requestQuotationId)->findAll();
+            
+                    if($assemblyFiles) {
+                        foreach ($assemblyFiles as $assemblyFile) {
+                            if (isset($assemblyFile['assembly_print_file_location'])) {
+                                // Get the filename of the PDF associated with the quotation
+                                $assembly = $assemblyFile['assembly_print_file_location'];
+            
+                                // Delete the PDF file from the server
+                                $filePathAssembly = FCPATH . $assembly;
+                                if (file_exists($filePathAssembly)) {
+                                    unlink($filePathAssembly);
+                                }
+                            }
+                        }
+                        $AssemblyPrintFilesModel->where('request_quotation_id', $id)->delete();
+                    }
+                    $RequestQuotationModel->delete($requestQuotationId);
+                }
+                return $this->response->setJSON([
+                    'status' => 'success',
+                    'Item Count' => $totalItems,
+                ]);
+            } else {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Failed to delete the quotation item from the database']);
+            }
+        }
+        
+        return $this->response->setJSON(['status' => 'error', 'message' => 'Quotation item not found']);
+    }    
+
     public function getQuotationList($id)
     {
         $request = service('request');
@@ -144,4 +218,3 @@ class RequestQuotationListController extends SessionController
         }
     }
 }
-

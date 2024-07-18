@@ -132,14 +132,17 @@
                 <h1>Lab-Ready</h1>
             </div>
             <div class="content">
-                <h3 class="title">Thank You For Your Quotation Request</h3>
+                <h3 class="title">Hi <?=session()->get('user_fullname')?>. Thank you for requesting a quote.</h3>
                 <div class="email-content">
-                    <h3>Here Are Your Order Details:</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    <h3>Your quote number is <i><?=$reference;?></i></h3>
+                    <p>You should receive a quote within 2-3 working days.</p>
+                    <p>Please contact us with any questions. Thank you!</p>
                 </div>
                 <div class="signature">
-                    <h4>Sincerely,</h4>
-                    <h3>Charlie</h3>
+                    <h4>Charlie Barfield</h4>
+                    <span>(662) 910-9173</span>
+                    <span>charlie@lab-ready.net</span>
+                    <span>Lab-ready.net</span>
                 </div>
             </div>
         </div>

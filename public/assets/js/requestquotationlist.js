@@ -69,6 +69,15 @@ $(document).ready(function () {
         });
     }
 
+    function getMaterialsHtml(quoteType, selectedMaterial) {
+        let materials = quoteType === '3D Printing' ? materials3DPrinting : materialsCNCMachine;
+        let options = materials.map(material => {
+            let selected = material === selectedMaterial ? 'selected' : '';
+            return `<option value="${material}" ${selected}>${material}</option>`;
+        });
+        return options.join('');
+    }
+
     $(document).on('click', '.quotation-list', function (e) {
         e.preventDefault();
 
@@ -88,15 +97,15 @@ $(document).ready(function () {
                         let materialId = 'material_' + item.quotation_item_id;
                         let quantityId = 'quantity_' + item.quotation_item_id;
                         let downloadBTN = "";
-                        let downloadAssemblyBTN = "";
-                        if (item.print_location !== null) {
+                        if (item.print_location !== null && item.status != 'Pending') {
                             downloadBTN = `<a href="${item.print_location}" download class="btn bg-dark text-white mb-2"><i class="fa fa-download"></i> Download Print File</a>`;
                         }
-                        if (item.assembly_file_location !== null) {
+                        if (item.assembly_file_location !== null && item.status != 'Pending') {
                             downloadAssemblyBTN = `<a href="${item.assembly_file_location}" download class="btn bg-warning text-white mb-2"><i class="fa fa-download"></i> Download Assembly Print File</a>`;
                         }
                         let itemHtml = "";
-                        if(item.status != 'Pending') {
+                        let materialsOptions = getMaterialsHtml(item.quotetype, item.material);
+                        if (item.status != 'Pending') {
                             itemHtml = `
                                 <div class="col-lg-12">
                                     <div class="card">
@@ -115,7 +124,7 @@ $(document).ready(function () {
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="quotetype">Quote Type</label>
-                                                        <input type="text" class="form-control" name="quotetype" id="${quoteTypeId}" value="${item.quotetype}" placeholder="Part Number" readonly>
+                                                        <input type="text" class="form-control" name="quotetype" id="${quoteTypeId}" value="${item.quotetype}" placeholder="Quote Type" readonly>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="material">Material</label>
@@ -126,16 +135,14 @@ $(document).ready(function () {
                                                         <input type="text" class="form-control" name="quantity" id="${quantityId}" value="${item.quantity}" placeholder="Quantity" readonly>
                                                     </div>
                                                     ${downloadBTN}<br/>
-                                                    ${downloadAssemblyBTN}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>`;
-                        }
-                        else {
+                        } else {
                             itemHtml = `
-                                <div class="col-lg-12">
+                                <div class="col-lg-12" class="items">
                                     <div class="card">
                                         <div class="card-body">
                                             <div class="row">
@@ -162,23 +169,20 @@ $(document).ready(function () {
                                                     <div class="form-group">
                                                         <label for="material">Material</label>
                                                         <select class="form-control" name="material" id="${materialId}">
-                                                            <option hidden>Select a Material</option>
-                                                            <option value="${item.material}" selected>${item.material}</option>
+                                                            ${materialsOptions}
                                                         </select>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="quantity">Quantity</label>
-                                                        <input type="text" class="form-control" name="quantity" id="${quantityId}" value="${item.quantity}" placeholder="Quantity" readonly>
+                                                        <input type="text" class="form-control" name="quantity" id="${quantityId}" value="${item.quantity}" placeholder="Quantity">
                                                     </div>
-                                                    ${downloadBTN}<br/>
-                                                    ${downloadAssemblyBTN}
+                                                    <button class="btn btn-danger delete-quotation-item" data-id="${item.quotation_item_id}"  data-request-quotation-id="${item.request_quotation_id}"><i class="fa fa-trash"></i> Delete</button><br/>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>`;
                         }
-
                         $('#quotationContainer').append(itemHtml);
 
                         const stlContainer = document.getElementById(stlContId);
@@ -200,6 +204,8 @@ $(document).ready(function () {
                             }
                         }
                     });
+                    let submitBtn = `<div class="col-lg-12"><button class="btn btn-dark">Submit</button></div>`;
+                    $('#quotationContainer').append(submitBtn);
 
                     $('#quotationListModal').modal('show');
 
@@ -258,6 +264,61 @@ $(document).ready(function () {
                     success: function (response) {
                         if (response.status === 'success') {
                             table.row(row).remove().draw(false);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: 'The request quotation has been deleted.',
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'Something went wrong!',
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Something went wrong with the request!',
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    $(document).on('click', '.delete-quotation-item', function (e) {
+        e.preventDefault();
+
+        let id = $(this).data('id');
+        let requestQuotationId = $(this).data('request-quotation-id');
+        let row = $(this).closest('.col-lg-12');
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/requestquotationlist/deleteItem/' + id,
+                    method: 'DELETE',
+                    data: { requestQuotationId: requestQuotationId },
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            row.remove();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: 'The quotation item has been deleted.',
+                            });
                         } else {
                             Swal.fire({
                                 icon: 'error',

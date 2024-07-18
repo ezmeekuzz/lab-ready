@@ -95,6 +95,7 @@ class RequestQuotationListController extends SessionController
         $inserted = $quotationsModel->insert($data);
         $UsersModel = new UsersModel();
         $userDetails = $UsersModel->find($this->request->getPost('userId'));
+        $requestQuotationDetails = $requestQuotationModel->where('user_id', $this->request->getPost('userId'))->find();
         if ($inserted) {
             $userQuotationsModel->insert([
                 'user_id' => $this->request->getPost('userId'),
@@ -108,7 +109,11 @@ class RequestQuotationListController extends SessionController
                     'status' => 'Done'
                 ]
             );
-            $message = view('emails/quotation-response');
+            $data = [
+                'userDetails' => $userDetails,
+                'requestQuotationDetails' => $requestQuotationDetails
+            ];
+            $message = view('emails/quotation-response', $data);
             // Email sending code
             $email = \Config\Services::email();
             $email->setTo($userDetails['email']);

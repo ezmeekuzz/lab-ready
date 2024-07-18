@@ -315,10 +315,10 @@ class RequestQuotationController extends SessionController
                 $response = [
                     'success' => 'Quotations submitted successfully'
                 ];
-    
+                $data = ['reference' => $requestQuotation['reference']];
                 // Send thank you email to the user
                 $userEmail = session()->get('user_email');
-                $thankYouMessage = view('emails/thank-you');
+                $thankYouMessage = view('emails/thank-you', $data);
     
                 $email = \Config\Services::email();
                 $email->setTo($userEmail);
@@ -337,9 +337,9 @@ class RequestQuotationController extends SessionController
                 $email->setMessage($thankYouMessage);
                 $email->setMailType('html');  // Ensure the email is sent as HTML
                 if ($email->send()) {
-                    log_message('info', 'Thank you email sent to additional recipient: ' . $additionalEmail);
+                    
                 } else {
-                    log_message('error', 'Failed to send thank you email to additional recipient: ' . $additionalEmail);
+                    
                 }
     
                 return $this->respond($response, ResponseInterface::HTTP_OK);

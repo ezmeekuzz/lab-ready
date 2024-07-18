@@ -136,12 +136,15 @@
             </div>
             <div class="content">
                 <div class="con-text email-content">
-                    <h3>Dear Client,</h3>
-                    <p>Thank you for requesting a quote from www.lab-ready.com. We are glad to inform you that your quotation is now ready and can be viewed by logging into your dashboard. These are your login details:</p>
+                    <h3>Hi <?=$userDetails['fullname'];?>. Quote (<?=$requestQuotationDetails['reference'];?>) is ready.</h3>
+                    <p><a href="<?=base_url();?>quotations" style="background: #000; color: #fff;">View Quote</a></p>
+                    <p>Please contact us with any questions. Thank you!</p>
                 </div>
-                <div class="con-text initail">
-                    <h4>Sincerely,</h4>
-                    <h3>Charlie</h3>
+                <div class="signature">
+                    <h4>Charlie Barfield</h4>
+                    <span>(662) 910-9173</span>
+                    <span>charlie@lab-ready.net</span>
+                    <span>Lab-ready.net</span>
                 </div>
             </div>
         </div>

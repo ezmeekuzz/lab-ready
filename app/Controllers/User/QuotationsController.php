@@ -9,6 +9,7 @@ use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 use App\Models\UserQuotationsModel;
 use App\Models\QuotationsModel;
+use App\Models\RequestQuotationsModel;
 
 class QuotationsController extends SessionController
 {
@@ -95,9 +96,9 @@ class QuotationsController extends SessionController
         $userQuotationsModel = new UserQuotationsModel();
     
         // Find the users by ID
-        $quootations = $userQuotationsModel->find($id);
+        $quotations = $userQuotationsModel->find($id);
     
-        if ($quootations) {
+        if ($quotations) {
     
             // Delete the record from the database
             $deleted = $userQuotationsModel->delete($id);
@@ -156,6 +157,8 @@ class QuotationsController extends SessionController
     
                 if ($tresponse != null && $tresponse->getMessages() != null) {
                     $quotationsModel = new QuotationsModel();
+                    $requestQuotationsModel = new RequestQuotationsModel();
+                    $requestQuotationDetails = $requestQuotationsModel->where('request_quotation_id', $id)->find();
                     $updated = $quotationsModel->where('quotation_id', $quotationId)
                         ->set('address', $address)
                         ->set('city', $city)
@@ -164,7 +167,9 @@ class QuotationsController extends SessionController
                         ->set('phonenumber', $phoneNumber)
                         ->set('status', 'Paid')
                         ->update();
-                    
+                    $data = [
+                        'requestQuotationDetails' => $requestQuotationDetails
+                    ];
                     $message = view('emails/payment-success', $data);
                     // Email sending code
                     $email = \Config\Services::email();

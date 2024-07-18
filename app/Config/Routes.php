@@ -54,6 +54,7 @@ $routes->post('requestquotation/submitQuotation', 'User\RequestQuotationControll
 $routes->get('/request-quotation-list', 'User\RequestQuotationListController::index');
 $routes->post('/requestquotationlist/getData', 'User\RequestQuotationListController::getData');
 $routes->delete('/requestquotationlist/delete/(:num)', 'User\RequestQuotationListController::delete/$1');
+$routes->delete('/requestquotationlist/deleteItem/(:num)', 'User\RequestQuotationListController::deleteItem/$1');
 $routes->get('/requestquotation/quotationLists', 'User\RequestQuotationController::quotationLists');
 $routes->post('/requestquotation/submitQuotations', 'User\RequestQuotationController::submitQuotations');
 $routes->delete('/requestquotation/delete/(:num)', 'User\RequestQuotationController::delete/$1');

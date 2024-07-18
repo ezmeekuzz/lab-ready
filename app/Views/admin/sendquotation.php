@@ -36,8 +36,8 @@
                         <div class="card-body">
                             <form id="sendquotation">
                                 <div class="form-group">
-                                    <label for="productname">Product Name</label>
-                                    <input type="text" name="productname" id="productname" class="form-control" placeholder="Enter Product Name">
+                                    <label for="productname">Quote Number</label>
+                                    <input type="text" name="productname" id="productname" class="form-control" placeholder="Enter Quote Number">
                                 </div>
                                 <div class="form-group">
                                     <label for="productprice">Product Price</label>
@@ -48,7 +48,7 @@
                                     <textarea class="form-control" name="productdetails" id="productdetails" rows="5" placeholder="Enter Product Details"></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label for="invoicefile">Invoice File</label>
+                                    <label for="invoicefile">Quote File</label>
                                     <div class="custom-file">
                                         <label class="custom-file-label" for="invoicefile">Choose file</label>
                                         <input type="file" class="custom-file-input" id="invoicefile" name="invoicefile" accept="application/pdf">
