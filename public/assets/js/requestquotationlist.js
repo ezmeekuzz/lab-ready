@@ -1,7 +1,117 @@
 $(document).ready(function () {
+
     const materials3DPrinting = ['', 'Nylon', 'ABS', 'PETG', 'Aluminum', 'Stainless Steel', 'Titanium'];
     const materialsCNCMachine = ['', 'ABS', 'PA (Nylon)', 'Polycarbonate', 'PEEK', 'PEI (Ultem)', 'PMMA (Acrylic)', 'POM (Acetal/Delrin)', 'Aluminum', 'Stainless Steel', 'Titanium'];
 
+    const acceptedFileTypes = ['step', 'iges', 'stl', 'igs', 'pdf', 'STEP', 'IGES', 'STL', 'IGS', 'PDF'];
+    
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileSelectBtn = document.getElementById('fileSelectBtn');
+    const fileList = document.getElementById('fileList');
+
+    uploadArea.addEventListener('dragover', function(event) {
+        event.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', function(event) {
+        event.preventDefault();
+        uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', function(event) {
+        event.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        handleFiles(event.dataTransfer.files);
+    });
+
+    fileSelectBtn.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function() {
+        handleFiles(fileInput.files);
+    });
+
+    function handleFiles(files) {
+        fileList.innerHTML = '';
+        let invalidFiles = [];
+        let status = $('#status').val();
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+    
+            if (!acceptedFileTypes.includes(fileExtension)) {
+                invalidFiles.push(file.name);
+                continue;
+            }
+    
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.textContent = `File Name: ${file.name}, File Size: ${(file.size / 1024).toFixed(2)} KB`;
+            fileList.appendChild(fileItem);
+        }
+    
+        if (invalidFiles.length > 0) {
+            Swal.fire('Error', `Invalid file type(s): ${invalidFiles.join(', ')}. Only STEP, Parasolid, IGES, and PDF files are allowed.`, 'error');
+            return;
+        }
+    
+        let formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files[]', files[i]);
+        }
+    
+        const requestQuotationId = $('#request_quotation_id').val(); // Fetch request_quotation_id here
+        if (!requestQuotationId) {
+            Swal.fire('Error', 'No request quotation ID provided.', 'error');
+            return;
+        }
+        formData.append('request_quotation_id', requestQuotationId);
+    
+        Swal.fire({
+            title: 'Uploading...',
+            text: 'Please wait while we upload your files.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+    
+        $.ajax({
+            url: '/requestquotationlist/uploadFiles',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                Swal.close();
+                console.log('Success response:', response);
+                Swal.fire('Success', response.success, 'success').then(() => {
+                    // Append the new files to the file list
+                    quotationItems(requestQuotationId, status);
+                    response.uploadedFiles.forEach(file => {
+                        appendFileItem(file);
+                    });
+                    fileInput.value = '';
+                });
+            },
+            error: function(response) {
+                Swal.close();
+                console.error('Error response:', response);
+                let errors = response.responseJSON.errors;
+                let errorMessages = Object.values(errors).join("\n");
+                Swal.fire('Error', errorMessages, 'error');
+            }
+        });
+    }
+    function appendFileItem(file) {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.textContent = `File Name: ${file.name}, File Size: ${(file.size / 1024).toFixed(2)} KB`;
+        fileList.appendChild(fileItem);
+    }
     let table = $('#requestquotationmasterlist').DataTable({
         "processing": true,
         "serverSide": true,
@@ -29,8 +139,11 @@ $(document).ready(function () {
                 "orderable": false,
                 "render": function (data, type, row) {
                     return `
-                        <a href="#" title="Quotation List" class="quotation-list" data-id="${row.request_quotation_id}" style="color: orange;">
+                        <a href="#" title="Quotation List" class="quotation-list" data-id="${row.request_quotation_id}" data-status = "${row.status}" style="color: orange;">
                             <i class="fa fa-file-text" style="font-size: 18px;"></i>
+                        </a>
+                        <a href="#" title="Duplicate Quotation" class="duplicate-quotation" data-id="${row.request_quotation_id}" data-status = "${row.status}" style="color: blue;">
+                            <i class="fa fa-copy" style="font-size: 18px;"></i>
                         </a>
                         <a href="/download-excel-file/${row.request_quotation_id}" download title="Download Excel File" style="color: green;">
                             <i class="ti ti-download" style="font-size: 18px;"></i>
@@ -82,6 +195,11 @@ $(document).ready(function () {
         e.preventDefault();
 
         let requestQuotationId = $(this).data('id');
+        let status = $(this).data('status');
+        quotationItems(requestQuotationId, status);
+    });
+
+    function quotationItems(requestQuotationId, status) {
 
         $.ajax({
             url: '/requestquotationlist/getQuotationList/' + requestQuotationId,
@@ -89,13 +207,16 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.status === 'success') {
                     $('#quotationContainer').empty();
-
+                    $('#request_quotation_id').val(requestQuotationId);
                     response.data.forEach(item => {
                         let stlContId = 'stlCont_' + item.quotation_item_id;
                         let partNumberId = 'partNumber_' + item.quotation_item_id;
                         let quoteTypeId = 'quotetype_' + item.quotation_item_id;
                         let materialId = 'material_' + item.quotation_item_id;
                         let quantityId = 'quantity_' + item.quotation_item_id;
+                        let printFileId = 'printFile_' + item.quotation_item_id;
+                        let increaseId = 'increase_' + item.quotation_item_id;
+                        let decreaseId = 'decrease_' + item.quotation_item_id;
                         let downloadBTN = "";
                         if (item.print_location !== null && item.status != 'Pending') {
                             downloadBTN = `<a href="${item.print_location}" download class="btn bg-dark text-white mb-2"><i class="fa fa-download"></i> Download Print File</a>`;
@@ -105,7 +226,8 @@ $(document).ready(function () {
                         }
                         let itemHtml = "";
                         let materialsOptions = getMaterialsHtml(item.quotetype, item.material);
-                        if (item.status != 'Pending') {
+                        if (status != 'Pending') {
+                            $('#DropFiles').css('display', 'none');
                             itemHtml = `
                                 <div class="col-lg-12">
                                     <div class="card">
@@ -151,15 +273,15 @@ $(document).ready(function () {
                                                 </div>
                                                 <div class="col-lg-6">
                                                     <div class="form-group" hidden>
-                                                        <input type="text" class="form-control" name="quotation_item_id" value="${item.quotation_item_id}" id="${partNumberId}" placeholder="Part Number">
+                                                        <input type="text" class="form-control" name="quotation_item_id[]" value="${item.quotation_item_id}" id="${partNumberId}" placeholder="Part Number">
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="partnumber">Part Number</label>
-                                                        <input type="text" class="form-control" name="partnumber" id="${partNumberId}" value="${item.partnumber}" placeholder="Part Number" readonly>
+                                                        <input type="text" class="form-control" name="partnumber[]" id="${partNumberId}" value="${item.partnumber}" placeholder="Part Number" readonly>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="quotetype">Quote Type</label>
-                                                        <select class="form-control" name="quotetype" id="${quoteTypeId}">
+                                                        <select class="form-control" name="quotetype[]" id="${quoteTypeId}">
                                                             <option hidden>Select Manufacturing Service</option>
                                                             <option disabled></option>
                                                             <option value="3D Printing" ${item.quotetype === '3D Printing' ? 'selected' : ''}>3D Printing</option>
@@ -168,13 +290,27 @@ $(document).ready(function () {
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="material">Material</label>
-                                                        <select class="form-control" name="material" id="${materialId}">
+                                                        <select class="form-control" name="material[]" id="${materialId}">
                                                             ${materialsOptions}
                                                         </select>
                                                     </div>
                                                     <div class="form-group">
-                                                        <label for="quantity">Quantity</label>
-                                                        <input type="text" class="form-control" name="quantity" id="${quantityId}" value="${item.quantity}" placeholder="Quantity">
+                                                        <label for="${printFileId}">Print File</label>
+                                                        <div class="custom-file">
+                                                            <label class="custom-file-label" for="${printFileId}">Choose file</label>
+                                                            <input type="file" class="custom-file-input" id="${printFileId}" name="printFile[]" accept="application/pdf">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="input-group quantity-control">
+                                                            <div class="input-group-prepend">
+                                                                <button type="button" id="${decreaseId}" class="btn btn-secondary">-</button>
+                                                            </div>
+                                                            <input type="text" readonly id="${quantityId}" name="quantity[]" value="1" min="1" class="form-control text-center">
+                                                            <div class="input-group-append">
+                                                                <button type="button" id="${increaseId}" class="btn btn-secondary">+</button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <button class="btn btn-danger delete-quotation-item" data-id="${item.quotation_item_id}"  data-request-quotation-id="${item.request_quotation_id}"><i class="fa fa-trash"></i> Delete</button><br/>
                                                 </div>
@@ -203,10 +339,23 @@ $(document).ready(function () {
                                 }
                             }
                         }
+                        $(`#${increaseId}`).on('click', function() {
+                            let quantity = parseInt($(`#${quantityId}`).val());
+                            $(`#${quantityId}`).val(quantity + 1);
+                        });
+    
+                        $(`#${decreaseId}`).on('click', function() {
+                            let quantity = parseInt($(`#${quantityId}`).val());
+                            if (quantity > 1) {
+                                $(`#${quantityId}`).val(quantity - 1);
+                            }
+                        });
                     });
-                    let submitBtn = `<div class="col-lg-12"><button class="btn btn-dark">Submit</button></div>`;
-                    $('#quotationContainer').append(submitBtn);
-
+                    let submitBtn = `<div class="col-lg-12"><button type="button" class="btn btn-dark" id="submit_quotation">Submit</button></div>`;
+                    if(status == 'Pending') {
+                        $('#quotationContainer').append(submitBtn);
+                        $('#DropFiles').css('display', 'block');
+                    }
                     $('#quotationListModal').modal('show');
 
                     $('#quotationListModal').on('hidden.bs.modal', function (e) {
@@ -228,7 +377,7 @@ $(document).ready(function () {
                 });
             }
         });
-    });
+    }
 
     $(document).on('change', 'select[id^="quotetype_"]', function() {
         let selectedQuoteType = $(this).val();
@@ -335,6 +484,39 @@ $(document).ready(function () {
                         });
                     }
                 });
+            }
+        });
+    });
+    $(document).on('click', '#submit_quotation', function () {
+        let formData = $('#quotationForm').serialize();
+    
+        Swal.fire({
+            title: 'Submitting...',
+            text: 'Please wait while we submit your quotation.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+    
+        $.ajax({
+            url: '/requestquotationlist/submitQuotations',
+            method: 'POST',
+            data: formData,
+            success: function (response) {
+                Swal.close();
+                if (response.status === 'success') {
+                    Swal.fire('Success', 'Quotation submitted successfully.', 'success').then(() => {
+                        $('#quotationModal').modal('hide');
+                        table.ajax.reload();
+                    });
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function (response) {
+                Swal.close();
+                Swal.fire('Error', 'Failed to submit quotation.', 'error');
             }
         });
     });

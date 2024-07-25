@@ -38,6 +38,10 @@
                                 <table id="quotationmasterlist" class="table table-bordered">
                                     <thead>
                                         <tr>
+                                            <th>User ID</th>
+                                            <th>Full Name</th>
+                                            <th>Email Address</th>
+                                            <th>Reference</th>
                                             <th>Product</th>
                                             <th>Price</th>
                                             <th>Date</th>

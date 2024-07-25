@@ -14,6 +14,7 @@ $(document).ready(function () {
                 let invoiceFile = response.invoicefile; // Assuming you have a PDF URL property
                 let productName = response.productname;
                 let productPrice = response.productprice;
+                let shipmentLink = response.shipment_link;
 
                 // Format the content as HTML
                 let htmlContent = '<div class="book-layout">';
@@ -21,6 +22,7 @@ $(document).ready(function () {
                 htmlContent += '<div class="book-details mt-3">';
                 htmlContent += '<div class="date mt-3"><strong>DATE:</strong> ' + quotationDate + '</div>';
                 htmlContent += '<div class="date mt-3"><strong>Amount:</strong> ' + productPrice + '</div>';
+                htmlContent += '<div class="date mt-3"><strong>Track Order:</strong> <a href="/' + shipmentLink + '" target="_blank">Track Order</a></div>';
                 if (response.status === 'Unpaid') {
                     htmlContent += '<div class="row">';
                     htmlContent += '<div class="mb-3 mt-3 col-lg-12"><div id="paypalButton" class="form-group"></div><button type="button" class="btn btn-info p-3 w-100" id="chargeCreditCard"><img src="https://static.vecteezy.com/system/resources/previews/019/879/184/original/credit-cards-payment-icon-on-transparent-background-free-png.png" class="w-25" /> Credit Card Payment</button></div>';

@@ -53,7 +53,9 @@ class RequestQuotationListController extends SessionController
         $requestQuotationModel = new RequestQuotationModel();
         $productName = $this->request->getPost('productname');
         $productPrice = $this->request->getPost('productprice');
+        $productPrice = $this->request->getPost('productprice');
         $invoiceFile = $this->request->getFile('invoicefile');
+        $requestQuotationId = $this->request->getPost('requestQuotationId');
     
         $errors = [];
     
@@ -84,6 +86,7 @@ class RequestQuotationListController extends SessionController
     
         // Prepare data for insertion
         $data = [
+            'request_quotation_id' => $requestQuotationId,
             'productname' => $productName,
             'productprice' => $productPrice,
             'invoicefile' => '/uploads/PDFs/' . $newFileName,
@@ -95,7 +98,7 @@ class RequestQuotationListController extends SessionController
         $inserted = $quotationsModel->insert($data);
         $UsersModel = new UsersModel();
         $userDetails = $UsersModel->find($this->request->getPost('userId'));
-        $requestQuotationDetails = $requestQuotationModel->where('user_id', $this->request->getPost('userId'))->find();
+        $requestQuotationDetails = $requestQuotationModel->where('request_quotation_id', $requestQuotationId)->first();
         if ($inserted) {
             $userQuotationsModel->insert([
                 'user_id' => $this->request->getPost('userId'),

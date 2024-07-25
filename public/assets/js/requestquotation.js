@@ -137,8 +137,8 @@ $(document).ready(function() {
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="form-group">
-                                    <span class="text-danger">If fit, finish and aseembly is required. Please assembly print here.</span>
-                                    <label for="assemblyFile">(Assembly Print File)</label>
+                                    <span class="text-danger">If fit, finish and assembly is required. Please assembly print here.</span>
+                                    <label for="assemblyFile">(Assembly Print File) Upload Multiple Files</label>
                                     <div class="custom-file">
                                         <label class="custom-file-label" for="assemblyFile">Choose file</label>
                                         <input type="file" class="custom-file-input" id="assemblyFile" name="assemblyFile[]" accept="application/pdf" multiple>

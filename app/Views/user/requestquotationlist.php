@@ -43,6 +43,7 @@
                                             <th></th>
                                         </tr>
                                     </thead>
+                                    <tbody></tbody> <!-- Add this line to include a tbody for DataTable -->
                                 </table>
                             </div>
                         </div>
@@ -63,7 +64,21 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div id="quotationContainer" class="row"></div>
+                <form id="quotationForm" enctype="multipart/form-data">
+                    <input type="hidden" name="request_quotation_id" id="request_quotation_id">
+                    <input type="hidden" name="status" id="status">
+                    <div id="quotationContainer" class="row"></div>
+                </form>
+                <div class="form-group" id="DropFiles">
+                    <label for="invoicefile">Drop Files</label>
+                    <div class="upload-area" id="uploadArea">
+                        <h2>Drag & Drop CAD Files (STEP, IGES AND STL Only)</h2>
+                        <p>or</p>
+                        <button type="button" id="fileSelectBtn">Select Files</button>
+                        <input type="file" id="fileInput" name="files" multiple hidden accept=".step,.iges,.igs,.pdf,.STEP,.IGES,.IGS,.PDF">
+                        <div id="fileList"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

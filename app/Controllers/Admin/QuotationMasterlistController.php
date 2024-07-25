@@ -6,6 +6,7 @@ use App\Controllers\Admin\SessionController;
 use CodeIgniter\HTTP\ResponseInterface;
 use App\Models\QuotationsModel;
 use App\Models\UserQuotationsModel;
+use App\Models\ShipmentsModel;
 
 class QuotationMasterlistController extends SessionController
 {
@@ -17,10 +18,16 @@ class QuotationMasterlistController extends SessionController
         ];
         return view('admin/quotationmasterlist', $data);
     }
+
     public function getData()
     {
-        return datatables('quotations')->make();
+        return datatables('quotations')
+            ->select('quotations.*, request_quotations.*, users.*, request_quotations.user_id as uid, quotations.status as stat')
+            ->join('request_quotations', 'request_quotations.request_quotation_id = quotations.request_quotation_id', 'LEFT JOIN')
+            ->join('users', 'request_quotations.user_id = users.user_id', 'LEFT JOIN')
+            ->make();
     }
+
     public function delete($id)
     {
         $QuotationsModel = new QuotationsModel();
@@ -52,6 +59,7 @@ class QuotationMasterlistController extends SessionController
     
         return $this->response->setJSON(['status' => 'error', 'message' => 'Quotation not found']);
     }
+
     public function updateStatus($id)
     {
         $quotationsModel = new QuotationsModel();
@@ -66,6 +74,71 @@ class QuotationMasterlistController extends SessionController
         }
         else {
             return $this->response->setJSON(['status' => 'error', 'message' => 'Failed to update the quotation from the database']);
+        }
+    }
+
+    public function updateShipment($id)
+    {
+        $shipmentsModel = new ShipmentsModel();
+        $quotationsModel = new QuotationsModel();
+
+        $data = $this->request->getPost();
+        $validation = \Config\Services::validation();
+
+        $validation->setRules([
+            'shipment_address' => 'required|string|max_length[255]',
+            'shipment_note' => 'required|string',
+            'shipment_link' => 'required|valid_url',
+            'shipment_date' => 'required|valid_date'
+        ]);
+
+        if (!$validation->withRequest($this->request)->run()) {
+            return $this->response->setJSON(['status' => 'error', 'message' => $validation->getErrors()]);
+        }
+
+        $shipmentData = [
+            'quotation_id' => $id,
+            'shipment_address' => $data['shipment_address'],
+            'shipment_note' => $data['shipment_note'],
+            'shipment_link' => $data['shipment_link'],
+            'shipment_date' => $data['shipment_date']
+        ];
+
+        $existingShipment = $shipmentsModel->where('quotation_id', $id)->first();
+
+        if ($existingShipment) {
+            $update = $shipmentsModel->update($existingShipment['shipment_id'], $shipmentData);
+        } else {
+            $update = $shipmentsModel->insert($shipmentData);
+        }
+
+        if ($update) {
+            $email = \Config\Services::email();
+            $email->setTo($data['email']);
+            $email->setSubject('You\'re order has been shipped!');
+            $email->setMessage('<a hre="'.$data['shipment_link'].'">Check it here </a> You\'re order has been shipped');
+            if ($email->send()) {
+                return $this->response->setJSON(['status' => 'success']);
+            } else {
+                $response = [
+                    'success' => false,
+                    'message' => 'Failed to send message!',
+                ];
+            }
+        } else {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Failed to update the shipment details']);
+        }
+    }
+
+    public function getShipment($id)
+    {
+        $shipmentsModel = new ShipmentsModel();
+        $shipment = $shipmentsModel->where('quotation_id', $id)->first();
+    
+        if ($shipment) {
+            return $this->response->setJSON(['status' => 'success', 'data' => $shipment]);
+        } else {
+            return $this->response->setJSON(['status' => 'success', 'data' => null]);
         }
     }
 }
