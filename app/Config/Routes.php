@@ -64,6 +64,9 @@ $routes->post('/requestquotation/submitQuotations', 'User\RequestQuotationContro
 $routes->delete('/requestquotation/delete/(:num)', 'User\RequestQuotationController::delete/$1');
 $routes->get('/requestquotation/recentQuotationLists', 'User\RequestQuotationController::recentQuotationLists');
 $routes->get('/requestquotationlist/getQuotationList/(:num)', 'User\RequestQuotationListController::getQuotationList/$1');
+$routes->post('/requestquotationlist/duplicateQuotation/(:num)', 'User\RequestQuotationListController::duplicateQuotation/$1');
+$routes->get('/requestquotationlist/download-files/(:num)', 'User\RequestQuotationListController::downloadAllFiles/$1');
+$routes->get('/requestquotationlist/downloadAssemblyFiles/(:num)', 'User\RequestQuotationListController::downloadAssemblyFiles/$1');
 /*User*/
 
 $routes->get('/', 'HomeController::index');

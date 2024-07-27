@@ -90,9 +90,104 @@ $(document).ready(function () {
                 console.log('Success response:', response);
                 Swal.fire('Success', response.success, 'success').then(() => {
                     // Append the new files to the file list
-                    quotationItems(requestQuotationId, status);
-                    response.uploadedFiles.forEach(file => {
-                        appendFileItem(file);
+                    //quotationItems(requestQuotationId, status);
+                    response.files.forEach(item => {
+                        let stlContId = 'stlCont_' + item.quotation_item_id;
+                        let partNumberId = 'partNumber_' + item.quotation_item_id;
+                        let quoteTypeId = 'quotetype_' + item.quotation_item_id;
+                        let materialId = 'material_' + item.quotation_item_id;
+                        let quantityId = 'quantity_' + item.quotation_item_id;
+                        let printFileId = 'printFile_' + item.quotation_item_id;
+                        let increaseId = 'increase_' + item.quotation_item_id;
+                        let decreaseId = 'decrease_' + item.quotation_item_id;
+                        let itemHtml = "";
+                        let materialsOptions = getMaterialsHtml(item.quotetype, item.material);
+                        itemHtml = `
+                        <div class="col-lg-12 items">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-lg-6 mb-5">
+                                            <div id="${stlContId}" style="height: 250px;"></div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group" hidden>
+                                                <input type="text" class="form-control" name="quotation_item_id[]" value="${item.quotation_item_id}" id="${partNumberId}" placeholder="Part Number">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="partnumber">Part Number</label>
+                                                <input type="text" class="form-control" name="partnumber[]" id="${partNumberId}" value="${item.partnumber}" placeholder="Part Number" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="quotetype">Quote Type</label>
+                                                <select class="form-control" name="quotetype[]" id="${quoteTypeId}">
+                                                    <option hidden>Select Manufacturing Service</option>
+                                                    <option disabled></option>
+                                                    <option value="3D Printing" ${item.quotetype === '3D Printing' ? 'selected' : ''}>3D Printing</option>
+                                                    <option value="CNC Machine" ${item.quotetype === 'CNC Machine' ? 'selected' : ''}>CNC Machine</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="material">Material</label>
+                                                <select class="form-control" name="material[]" id="${materialId}">
+                                                    ${materialsOptions}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="${printFileId}">Print File</label>
+                                                <div class="custom-file">
+                                                    <label class="custom-file-label" for="${printFileId}">Choose file</label>
+                                                    <input type="file" class="custom-file-input" id="${printFileId}" name="printFile[]" accept="application/pdf">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="input-group quantity-control">
+                                                    <div class="input-group-prepend">
+                                                        <button type="button" id="${decreaseId}" class="btn btn-secondary">-</button>
+                                                    </div>
+                                                    <input type="text" readonly id="${quantityId}" name="quantity[]" value="1" min="1" class="form-control text-center">
+                                                    <div class="input-group-append">
+                                                        <button type="button" id="${increaseId}" class="btn btn-secondary">+</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-danger delete-quotation-item" data-id="${item.quotation_item_id}"  data-request-quotation-id="${item.request_quotation_id}"><i class="fa fa-trash"></i> Delete</button><br/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                        $('#quotationContainer').append(itemHtml);
+    
+                        const stlContainer = document.getElementById(stlContId);
+                        if (stlContainer) {
+                            if (item.filetype == 'SLDPRT') {
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/SLDPRT-icon.png" alt="SLDPRT Icon" class="file-icon">';
+                            } else if (item.filetype === 'X_T') {
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/X_T-icon.png" alt="X_T Icon" class="file-icon">';
+                            } else if (item.filetype === 'PDF') {
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/PDF-icon.png" alt="PDF Icon" class="file-icon">';
+                            } else if (item.filetype === 'STEP' && item.stl_location == null) {
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/STEP-icon.png" alt="PDF Icon" class="file-icon">';
+                            }  else if (item.filetype === 'IGS' && item.stl_location == null) {
+                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/IGS-icon.webp" alt="PDF Icon" class="file-icon">';
+                            } else {
+                                if (item.stl_location !== null) {
+                                    initializeStlViewer(stlContainer, baseURL + item.stl_location);
+                                }
+                            }
+                        }
+                        $(`#${increaseId}`).on('click', function() {
+                            let quantity = parseInt($(`#${quantityId}`).val());
+                            $(`#${quantityId}`).val(quantity + 1);
+                        });
+    
+                        $(`#${decreaseId}`).on('click', function() {
+                            let quantity = parseInt($(`#${quantityId}`).val());
+                            if (quantity > 1) {
+                                $(`#${quantityId}`).val(quantity - 1);
+                            }
+                        });
                     });
                     fileInput.value = '';
                 });
@@ -145,7 +240,7 @@ $(document).ready(function () {
                         <a href="#" title="Duplicate Quotation" class="duplicate-quotation" data-id="${row.request_quotation_id}" data-status = "${row.status}" style="color: blue;">
                             <i class="fa fa-copy" style="font-size: 18px;"></i>
                         </a>
-                        <a href="/download-excel-file/${row.request_quotation_id}" download title="Download Excel File" style="color: green;">
+                        <a href="/requestquotationlist/download-files/${row.request_quotation_id}" download title="Download Excel File" style="color: green;">
                             <i class="ti ti-download" style="font-size: 18px;"></i>
                         </a>
                         <a href="#" title="Delete" class="delete-request" data-id="${row.request_quotation_id}" style="color: red;">
@@ -208,6 +303,7 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     $('#quotationContainer').empty();
                     $('#request_quotation_id').val(requestQuotationId);
+                    $('#status').val(status);
                     response.data.forEach(item => {
                         let stlContId = 'stlCont_' + item.quotation_item_id;
                         let partNumberId = 'partNumber_' + item.quotation_item_id;
@@ -221,13 +317,13 @@ $(document).ready(function () {
                         if (item.print_location !== null && item.status != 'Pending') {
                             downloadBTN = `<a href="${item.print_location}" download class="btn bg-dark text-white mb-2"><i class="fa fa-download"></i> Download Print File</a>`;
                         }
-                        if (item.assembly_file_location !== null && item.status != 'Pending') {
-                            downloadAssemblyBTN = `<a href="${item.assembly_file_location}" download class="btn bg-warning text-white mb-2"><i class="fa fa-download"></i> Download Assembly Print File</a>`;
-                        }
                         let itemHtml = "";
                         let materialsOptions = getMaterialsHtml(item.quotetype, item.material);
                         if (status != 'Pending') {
                             $('#DropFiles').css('display', 'none');
+                            $('#AssemblyPrintFile').css('display', 'none');
+                            $('#downloadAssemblyFiles').css('display', 'block');
+                            $('#downloadAssembly').attr('data-id', item.request_quotation_id);
                             itemHtml = `
                                 <div class="col-lg-12">
                                     <div class="card">
@@ -263,8 +359,9 @@ $(document).ready(function () {
                                     </div>
                                 </div>`;
                         } else {
+                            $('#downloadAssemblyFiles').css('display', 'none');
                             itemHtml = `
-                                <div class="col-lg-12" class="items">
+                                <div class="col-lg-12 items">
                                     <div class="card">
                                         <div class="card-body">
                                             <div class="row">
@@ -306,7 +403,7 @@ $(document).ready(function () {
                                                             <div class="input-group-prepend">
                                                                 <button type="button" id="${decreaseId}" class="btn btn-secondary">-</button>
                                                             </div>
-                                                            <input type="text" readonly id="${quantityId}" name="quantity[]" value="1" min="1" class="form-control text-center">
+                                                            <input type="text" readonly id="${quantityId}" name="quantity[]" value="${item.quantity}" min="1" class="form-control text-center">
                                                             <div class="input-group-append">
                                                                 <button type="button" id="${increaseId}" class="btn btn-secondary">+</button>
                                                             </div>
@@ -351,10 +448,9 @@ $(document).ready(function () {
                             }
                         });
                     });
-                    let submitBtn = `<div class="col-lg-12"><button type="button" class="btn btn-dark" id="submit_quotation">Submit</button></div>`;
                     if(status == 'Pending') {
-                        $('#quotationContainer').append(submitBtn);
                         $('#DropFiles').css('display', 'block');
+                        $('#AssemblyPrintFile').css('display', 'block');
                     }
                     $('#quotationListModal').modal('show');
 
@@ -488,8 +584,8 @@ $(document).ready(function () {
         });
     });
     $(document).on('click', '#submit_quotation', function () {
-        let formData = $('#quotationForm').serialize();
-    
+        let formData = new FormData($('#quotationForm')[0]);
+
         Swal.fire({
             title: 'Submitting...',
             text: 'Please wait while we submit your quotation.',
@@ -503,6 +599,8 @@ $(document).ready(function () {
             url: '/requestquotationlist/submitQuotations',
             method: 'POST',
             data: formData,
+            processData: false,
+            contentType: false,
             success: function (response) {
                 Swal.close();
                 if (response.status === 'success') {
@@ -519,5 +617,77 @@ $(document).ready(function () {
                 Swal.fire('Error', 'Failed to submit quotation.', 'error');
             }
         });
+    });
+    $(document).on('change', '#assemblyFile', function(event) {
+        const inputFile = event.currentTarget;
+        const fileCount = inputFile.files.length;
+        const label = $(this).siblings('.custom-file-label');
+
+        if (fileCount > 1) {
+            label.text(`${fileCount} files selected`);
+        } else if (fileCount === 1) {
+            label.text(inputFile.files[0].name);
+        } else {
+            label.text('Choose file');
+        }
+    });
+    $(document).on('click', '.duplicate-quotation', function (e) {
+        e.preventDefault();
+    
+        let quotationId = $(this).data('id');
+
+        let id = $(this).data('id');
+
+        let row = $(this).closest('tr');
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to duplicate this quotation?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, duplicate it!',
+            cancelButtonText: 'No, cancel!',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Duplicating...',
+                    text: 'Please wait while we duplicate your quotation.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+    
+                $.ajax({
+                    url: '/requestquotationlist/duplicateQuotation/' + quotationId,
+                    method: 'POST',
+                    success: function (response) {
+                        Swal.close();
+                        if (response.success) {
+                            Swal.fire('Success', response.message, 'success').then(() => {
+                                // Reload the table or update the UI as needed
+                                table.ajax.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function (response) {
+                        Swal.close();
+                        Swal.fire('Error', 'Failed to duplicate the quotation.', 'error');
+                    }
+                });
+            }
+        });
+    });
+    $('#downloadAssembly').click(function(e) {
+        e.preventDefault();
+
+        var requestId = $(this).data('id');
+
+        var downloadUrl = '/requestquotationlist/downloadAssemblyFiles/' + requestId;
+
+        window.location.href = downloadUrl;
     });
 });

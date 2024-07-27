@@ -67,9 +67,33 @@
                 <form id="quotationForm" enctype="multipart/form-data">
                     <input type="hidden" name="request_quotation_id" id="request_quotation_id">
                     <input type="hidden" name="status" id="status">
+                    <div class="row mb-5" id="downloadAssemblyFiles" style="display: none;">
+                        <div class="col-lg-6">
+                            <a href="#" class="btn bg-warning text-white mb-2" id="downloadAssembly"><i class="fa fa-download"></i> Download Assembly Print File</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mb-5" id="AssemblyPrintFile">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <span class="text-danger">If fit, finish and assembly is required. Please assembly print here.</span>
+                                    <label for="assemblyFile">(Assembly Print File) Upload Multiple Files</label>
+                                    <div class="custom-file">
+                                        <label class="custom-file-label" for="assemblyFile">Choose file</label>
+                                        <input type="file" class="custom-file-input" id="assemblyFile" name="assemblyFile[]" accept="application/pdf" multiple>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div id="quotationContainer" class="row"></div>
                 </form>
                 <div class="form-group" id="DropFiles">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <button type="button" class="btn btn-dark" id="submit_quotation">Submit</button>
+                        </div>
+                    </div>
                     <label for="invoicefile">Drop Files</label>
                     <div class="upload-area" id="uploadArea">
                         <h2>Drag & Drop CAD Files (STEP, IGES AND STL Only)</h2>

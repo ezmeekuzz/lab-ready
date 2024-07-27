@@ -83,8 +83,7 @@ class RequestQuotationController extends SessionController
                         'stl_location' => $stlFilePath ? 'uploads/quotation-files/' . basename($stlFilePath) : null, // Store converted STL file location if available
                     ];
                     $quotationItemsModel->insert($fileData);
-                    $recentQuotationItemIds[] = $quotationItemsModel->insertID();
-                    $response['files'][] = $fileData;
+                    $insertedIds[] = $quotationItemsModel->insertID();
                 } else {
                     // For non-STEP, non-IGS files, just upload without conversion
                     $file->move($uploadPath, $file->getName());
@@ -97,15 +96,18 @@ class RequestQuotationController extends SessionController
                         'stl_location' => null, // No STL location for non-STEP, non-IGS files
                     ];
                     $quotationItemsModel->insert($fileData);
-                    $recentQuotationItemIds[] = $quotationItemsModel->insertID();
-                    $response['files'][] = $fileData;
+                    $insertedIds[] = $quotationItemsModel->insertID();
                 }
             } else {
                 log_message('error', 'File upload error: ' . $file->getErrorString());
             }
         }
     
-        session()->set('recent_quotation_item_ids', $recentQuotationItemIds);
+        // Fetch all inserted records using their IDs
+        if (!empty($insertedIds)) {
+            $insertedData = $quotationItemsModel->whereIn('quotation_item_id', $insertedIds)->findAll();
+            $response['files'] = $insertedData;
+        }
         return $this->response->setJSON($response);
     }
     

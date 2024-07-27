@@ -9,6 +9,7 @@ use App\Models\RequestQuotationModel;
 use App\Models\UserQuotationsModel;
 use App\Models\QuotationItemsModel;
 use App\Models\UsersModel;
+use App\Models\AssemblyPrintFilesModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -173,13 +174,18 @@ class RequestQuotationListController extends SessionController
     }
     public function downloadExcelFile($id)
     {
-        // Load your model and get the data
+        // Load your models and get the data
         $quotationItemsModel = new QuotationItemsModel();
-        $quotations = $quotationItemsModel
+        $requestQuotationModel = new RequestQuotationModel();
+        $assemblyPrintFilesModel = new AssemblyPrintFilesModel();
+    
+        $requestQuotation = $requestQuotationModel->find($id);
+        $quotationItems = $quotationItemsModel
             ->join('request_quotations', 'request_quotations.request_quotation_id=quotation_items.request_quotation_id', 'left')
             ->join('users', 'request_quotations.user_id=users.user_id', 'left')
             ->where('quotation_items.request_quotation_id', $id)
             ->findAll();
+        $assemblyFiles = $assemblyPrintFilesModel->where('request_quotation_id', $requestQuotation['request_quotation_id'])->findAll();
     
         // Initialize PHPExcel library and spreadsheet
         $spreadsheet = new Spreadsheet();
@@ -197,12 +203,11 @@ class RequestQuotationListController extends SessionController
         $sheet->setCellValue('I1', 'File Location');
         $sheet->setCellValue('J1', 'STL Location');
         $sheet->setCellValue('K1', 'Print Location');
-        $sheet->setCellValue('L1', 'Assembly File Location');
-        $sheet->setCellValue('M1', 'Request Quotation ID');
+        $sheet->setCellValue('L1', 'Request Quotation ID');
     
         // Populate data rows
         $row = 2;
-        foreach ($quotations as $quotation) {
+        foreach ($quotationItems as $quotation) {
             $sheet->setCellValue('A' . $row, $quotation['quotation_item_id']);
             $sheet->setCellValue('B' . $row, $quotation['fullname']);
             $sheet->setCellValue('C' . $row, $quotation['partnumber']);
@@ -214,22 +219,63 @@ class RequestQuotationListController extends SessionController
             $sheet->setCellValue('I' . $row, $quotation['file_location']);
             $sheet->setCellValue('J' . $row, $quotation['stl_location']);
             $sheet->setCellValue('K' . $row, $quotation['print_location']);
-            $sheet->setCellValue('L' . $row, $quotation['assembly_file_location']);
-            $sheet->setCellValue('M' . $row, $quotation['request_quotation_id']);
+            $sheet->setCellValue('L' . $row, $quotation['request_quotation_id']);
             $row++;
         }
     
-        // Clean the output buffer
-        ob_clean();
-    
-        // Generate the file
+        // Save the spreadsheet to a temporary file
+        $tempExcelFile = tempnam(sys_get_temp_dir(), 'excel') . '.xlsx';
         $writer = new Xlsx($spreadsheet);
-        $fileName = 'request_quotations_' . date('Ymd_His') . '.xlsx';
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $fileName . '"');
-        header('Cache-Control: max-age=0');
-        $writer->save('php://output');
-        exit();
+        $writer->save($tempExcelFile);
+    
+        // Create a new ZipArchive instance
+        $zip = new \ZipArchive();
+        $zipFileName = 'quotation_files_' . $requestQuotation['reference'] . '.zip';
+    
+        // Open the zip file in memory
+        if ($zip->open($zipFileName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+            // Add the Excel file to the zip
+            $zip->addFile($tempExcelFile, 'request_quotations_' . date('Ymd_His') . '.xlsx');
+    
+            // Add assembly print files to the zip under the 'assembly-files' folder
+            foreach ($assemblyFiles as $file) {
+                if (!empty($file['assembly_print_file_location']) && file_exists(FCPATH . $file['assembly_print_file_location'])) {
+                    $zip->addFile(FCPATH . $file['assembly_print_file_location'], 'assembly-files/' . basename($file['assembly_print_file_location']));
+                }
+            }
+    
+            // Add quotation items files to the zip under the corresponding folders
+            foreach ($quotationItems as $item) {
+                if (!empty($item['file_location']) && file_exists(FCPATH . $item['file_location'])) {
+                    $zip->addFile(FCPATH . $item['file_location'], 'quotation-files/' . basename($item['file_location']));
+                }
+                if (!empty($item['stl_location']) && file_exists(FCPATH . $item['stl_location'])) {
+                    $zip->addFile(FCPATH . $item['stl_location'], 'stl-files/' . basename($item['stl_location']));
+                }
+                if (!empty($item['print_location']) && file_exists(FCPATH . $item['print_location'])) {
+                    $zip->addFile(FCPATH . $item['print_location'], 'print-files/' . basename($item['print_location']));
+                }
+            }
+    
+            // Close the zip file
+            $zip->close();
+    
+            // Send the zip file to the browser for download
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $zipFileName . '"');
+            header('Content-Length: ' . filesize($zipFileName));
+    
+            // Read the zip file from memory and send it to the browser
+            readfile($zipFileName);
+    
+            // Delete the zip file and temporary Excel file after download
+            unlink($zipFileName);
+            unlink($tempExcelFile);
+    
+            exit;
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'Failed to create zip file.']);
+        }
     }
     
 }

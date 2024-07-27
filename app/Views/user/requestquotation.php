@@ -34,8 +34,28 @@
                         </div>
                         <div class="card-body">
                             <form class="mb-5" id="submitQuotation">
-                                <div id="assembly"></div>
+                                <div class="row" id="assembly" style="display: none;">
+                                    <div class="col-lg-12 mb-5">
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <div class="form-group">
+                                                    <span class="text-danger">If fit, finish and assembly is required. Please assembly print here.</span>
+                                                    <label for="assemblyFile">(Assembly Print File) Upload Multiple Files</label>
+                                                    <div class="custom-file">
+                                                        <label class="custom-file-label" for="assemblyFile">Choose file</label>
+                                                        <input type="file" class="custom-file-input" id="assemblyFile" name="assemblyFile[]" accept="application/pdf" multiple>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row" id="formsContainer"></div>
+                                <div class="row" id="submitBTN" style="display: none;">
+                                    <div class="col-lg-12">
+                                        <button type="button" id="submitAll" class="btn bg-dark text-white">Submit</button>
+                                    </div>
+                                </div>
                             </form>
                             <form id="requestquotation">
                                 <div class="form-group">

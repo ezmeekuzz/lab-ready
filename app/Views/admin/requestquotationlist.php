@@ -109,6 +109,11 @@
                 </button>
             </div>
             <div class="modal-body">
+                <div class="row mb-5" id="downloadAssemblyFiles">
+                    <div class="col-lg-6">
+                        <a href="#" class="btn bg-warning text-white mb-2" id="downloadAssembly"><i class="fa fa-download"></i> Download Assembly Print File</a>
+                    </div>
+                </div>
                 <div id="quotationContainer" class="row"></div>
             </div>
         </div>

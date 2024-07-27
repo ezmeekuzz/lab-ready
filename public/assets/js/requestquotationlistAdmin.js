@@ -48,7 +48,7 @@ $(document).ready(function () {
             $(row).attr('data-id', data.request_quotation_id);
 
             $('td', row).each(function (index) {
-                if (index !== 5) { // Assuming the actions column is at index 5
+                if (index !== 7) { // Assuming the actions column is at index 5
                     $(this).attr('data-user-id', data.uid);
                 }
             });
@@ -62,7 +62,7 @@ $(document).ready(function () {
         let cell = table.cell(this);
         let cellIndex = cell.index().column;
 
-        if (cellIndex === 5) { // If the cell index is the actions column, do nothing
+        if (cellIndex === 6) { // If the cell index is the actions column, do nothing
             return;
         }
 
@@ -128,9 +128,7 @@ $(document).ready(function () {
                         if (item.print_location !== null) {
                             downloadBTN = `<a href="${item.print_location}" download class="btn bg-dark text-white mb-2"><i class="fa fa-download"></i> Download Print File</a>`;
                         }
-                        if (item.assembly_file_location !== null) {
-                            downloadAssemblyBTN = `<a href="${item.assembly_file_location}" download class="btn bg-warning text-white mb-2"><i class="fa fa-download"></i> Download Assembly Print File</a>`;
-                        }
+                        $('#downloadAssembly').attr('data-id', item.request_quotation_id);
                         // Create HTML for each item
                         let itemHtml = `
                             <div class="col-lg-12">
@@ -379,5 +377,14 @@ $(document).ready(function () {
                 });
             }
         });
+    });
+    $('#downloadAssembly').click(function(e) {
+        e.preventDefault();
+
+        var requestId = $(this).data('id');
+
+        var downloadUrl = '/requestquotationlist/downloadAssemblyFiles/' + requestId;
+
+        window.location.href = downloadUrl;
     });
 });
