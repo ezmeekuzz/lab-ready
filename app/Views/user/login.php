@@ -4,7 +4,7 @@
     <title><?=$title;?></title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <meta name="description" content="Admin template that can be used to build dashboards for CRM, CMS, etc." />
+    <meta name="description" content="We have on-site capabilities to tweak as needed or to aid in assembly. These services can also be quoted a la' carte for your existing parts. Contact us for details." />
     <meta content="Rustom Codilan" name="author" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="icon" href="<?=base_url();?>images/favicon.jpeg" type="image/x-icon">
