@@ -214,10 +214,11 @@ $(document).ready(function () {
         });
     });
 
-    function fetchData() {
+    function fetchData(search = '') {
         $.ajax({
             type: "GET",
             url: "/quotations/getData",
+            data: { search: search },
             success: function (response) {
                 $("#card-columns").empty();
                 if(response.length === 0) {
@@ -238,6 +239,7 @@ $(document).ready(function () {
                                             </div>
                                             <div>
                                                 <h4 class="mb-2">${item.productname}</h4>
+                                                <p class="mb-2"><span style="font-weight: bold;">Reference : ${item.reference}</span></p>
                                                 <p class="mb-2"><span style="font-weight: bold; color: red;">Price : ${item.productprice}</span></p>
                                                 <p class="mb-2"><span style="font-weight: bold; color: blue;">Date : ${item.quotationdate}</span></p>
                                                 <a href="javascript:void(0)" class="btn btn-light quotationDetails" data-quotation-id="${item.quotation_id}" data-id="${item.user_quotation_id}" data-amount="${item.productprice}">Open</a>
@@ -257,7 +259,14 @@ $(document).ready(function () {
         });
     }
 
+    // Initial fetch
     fetchData();
+
+    // Event listener for search box
+    $('#searchBox').on('input', function() {
+        const search = $(this).val();
+        fetchData(search);
+    });
 
     $(document).on('click', '.delete-quotation', function () {
         let id = $(this).data('id');

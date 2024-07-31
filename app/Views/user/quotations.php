@@ -24,6 +24,15 @@
                     </div>
                 </div>
             </div>
+            <div class="row mb-5">
+                <div class="col-lg-12 d-flex justify-content-end">
+                    <div class="col-lg-4 p-0">
+                        <div class="search-box">
+                            <input type="text" id="searchBox" class="form-control" placeholder="Search Quotations">
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-lg-12">
                     <div id="noQuotationsMessage" class="alert alert-info" style="display: none;">

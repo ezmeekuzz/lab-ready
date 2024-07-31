@@ -24,13 +24,22 @@ class QuotationsController extends SessionController
     public function getData()
     {
         $userQuotationsModel = new UserQuotationsModel();
+        $search = $this->request->getVar('search');
+    
         $userQuotationList = $userQuotationsModel
-        ->join('quotations', 'quotations.quotation_id=user_quotations.quotation_id', 'left')
-        ->where('user_id', session()->get('user_user_id'))
-        ->findAll();
-        
+            ->join('quotations', 'quotations.quotation_id=user_quotations.quotation_id', 'left')
+            ->join('request_quotations', 'request_quotations.request_quotation_id=quotations.request_quotation_id', 'left')
+            ->where('user_quotations.user_id', session()->get('user_user_id'));
+    
+        if ($search) {
+            $userQuotationList = $userQuotationList->like('request_quotations.reference', $search);
+        }
+    
+        $userQuotationList = $userQuotationList->findAll();
+    
         return $this->response->setJSON($userQuotationList);
     }
+    
     public function quotationDetails()
     {
         $userQuotationId = $this->request->getVar('userQuotationId');
