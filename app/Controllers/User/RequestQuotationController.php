@@ -205,10 +205,6 @@ class RequestQuotationController extends SessionController
             ->where('status', 'Ongoing')
             ->first(); // Changed find() to first() to get a single record
     
-        if (!$requestQuotation) {
-            return $this->fail('No ongoing request quotation found', ResponseInterface::HTTP_NOT_FOUND);
-        }
-    
         $requestQuotationId = $requestQuotation['request_quotation_id']; // Assuming the primary key is 'id'
         $request = service('request');
     
@@ -248,21 +244,26 @@ class RequestQuotationController extends SessionController
                     foreach ($assemblyFiles as $assemblyFile) {
                         if ($assemblyFile->isValid() && !$assemblyFile->hasMoved()) {
                             $newFileName2 = $assemblyFile->getRandomName();
+                            $originalName = $assemblyFile->getClientName();
                             log_message('info', 'Moving assembly file to: ' . $uploadPath2 . $newFileName2);
                             if (!$assemblyFile->move($uploadPath2, $newFileName2)) {
                                 log_message('error', 'Failed to upload assembly file: ' . $assemblyFile->getErrorString());
                                 return $this->fail('Failed to upload assembly file: ' . $assemblyFile->getErrorString(), ResponseInterface::HTTP_BAD_REQUEST);
                             }
-                            $assemblyFilePaths[] = 'uploads/assembly-files/' . $newFileName2;
+                            $assemblyFilePaths[] = [
+                                'path' => 'uploads/assembly-files/' . $newFileName2,
+                                'original_name' => $originalName,
+                            ];
                         }
                     }
                 }
     
                 // Save each assembly file path into the assembly_print_files table
-                foreach ($assemblyFilePaths as $path) {
+                foreach ($assemblyFilePaths as $fileData) {
                     $assemblyPrintFilesModel->insert([
                         'request_quotation_id' => $requestQuotationId,
-                        'assembly_print_file_location' => $path,
+                        'assembly_print_file_location' => $fileData['path'],
+                        'filename' => $fileData['original_name'],
                     ]);
                 }
     
@@ -284,8 +285,10 @@ class RequestQuotationController extends SessionController
     
                     // Handle print file upload if a file is provided
                     $printFilePath = null;
+                    $originalFileName  = null;
                     if ($printFile && $printFile->isValid() && !$printFile->hasMoved()) {
                         $newFileName = $printFile->getRandomName();
+                        $originalFileName = $printFile->getClientName();
                         log_message('info', 'Moving print file to: ' . $uploadPath . $newFileName);
                         if (!$printFile->move($uploadPath, $newFileName)) {
                             log_message('error', 'Failed to upload print file: ' . $printFile->getErrorString());
@@ -301,22 +304,9 @@ class RequestQuotationController extends SessionController
                         'quotetype' => $quotetype,
                         'material' => $material,
                         'print_location' => $printFilePath,
+                        'print_location_original_name' => $originalFileName,
                     ]);
                 }
-    
-                // Update request quotation status
-                $requestQuotationModel
-                    ->where('user_id', session()->get('user_user_id'))
-                    ->where('status', 'Ongoing')
-                    ->set([
-                        'status' => 'Pending',
-                        'datesubmitted' => date('Y-m-d')
-                    ])
-                    ->update();
-    
-                $response = [
-                    'success' => 'Quotations submitted successfully'
-                ];
                 $data = ['reference' => $requestQuotation['reference']];
                 // Send thank you email to the user
                 $userEmail = session()->get('user_email');
@@ -328,6 +318,19 @@ class RequestQuotationController extends SessionController
                 $email->setMessage($thankYouMessage);
                 $email->setMailType('html');  // Ensure the email is sent as HTML
                 if ($email->send()) {
+                    // Update request quotation status
+                    $requestQuotationModel
+                        ->where('user_id', session()->get('user_user_id'))
+                        ->where('status', 'Ongoing')
+                        ->set([
+                            'status' => 'Pending',
+                            'datesubmitted' => date('Y-m-d')
+                        ])
+                        ->update();
+        
+                    $response = [
+                        'success' => 'Quotations submitted successfully'
+                    ];
                     log_message('info', 'Thank you email sent to user: ' . $userEmail);
                 } else {
                     log_message('error', 'Failed to send thank you email to user: ' . $userEmail);

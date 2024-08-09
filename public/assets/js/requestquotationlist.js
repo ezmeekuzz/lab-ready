@@ -234,13 +234,13 @@ $(document).ready(function () {
                 "orderable": false,
                 "render": function (data, type, row) {
                     return `
-                        <a href="#" title="Quotation List" class="quotation-list" data-id="${row.request_quotation_id}" data-status = "${row.status}" style="color: orange;">
+                        <a href="#" title="View or Edit (If Pending) Quote" class="quotation-list" data-id="${row.request_quotation_id}" data-status = "${row.status}" style="color: orange;">
                             <i class="fa fa-file-text" style="font-size: 18px;"></i>
                         </a>
                         <a href="#" title="Duplicate Quotation" class="duplicate-quotation" data-id="${row.request_quotation_id}" data-status = "${row.status}" style="color: blue;">
                             <i class="fa fa-copy" style="font-size: 18px;"></i>
                         </a>
-                        <a href="/requestquotationlist/download-files/${row.request_quotation_id}" download title="Download Excel File" style="color: green;">
+                        <a href="/requestquotationlist/download-files/${row.request_quotation_id}" download title="Download Files" style="color: green;">
                             <i class="ti ti-download" style="font-size: 18px;"></i>
                         </a>
                         <a href="#" title="Delete" class="delete-request" data-id="${row.request_quotation_id}" style="color: red;">

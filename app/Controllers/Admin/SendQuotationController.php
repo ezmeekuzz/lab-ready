@@ -7,6 +7,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 use App\Models\QuotationsModel;
 use App\Models\UsersModel;
 use App\Models\UserQuotationsModel;
+use App\Models\RequestQuotationModel;
 
 class SendQuotationController extends SessionController
 {
@@ -24,11 +25,21 @@ class SendQuotationController extends SessionController
     public function insert()
     {
         $quotationsModel = new QuotationsModel();
+        $requestQuotationModel = new RequestQuotationModel();
         $userQuotationsModel = new UserQuotationsModel();
         $productName = $this->request->getPost('productname');
         $productPrice = $this->request->getPost('productprice');
         $invoiceFile = $this->request->getFile('invoicefile');
-    
+        
+        $dataRequestQuotation = [
+            'reference' => $this->generateReference($this->request->getPost('userId')),
+            'user_id' => $this->request->getPost('userId'),
+            'status' => 'Done',
+            'datesubmitted' => date('Y-m-d')
+        ];
+
+        $requestSubmitted = $requestQuotationModel->insert($dataRequestQuotation);
+
         $errors = [];
     
         // Check each field individually
@@ -58,6 +69,7 @@ class SendQuotationController extends SessionController
     
         // Prepare data for insertion
         $data = [
+            'request_quotation_id' => $requestSubmitted,
             'productname' => $productName,
             'productprice' => $productPrice,
             'invoicefile' => '/uploads/PDFs/' . $newFileName,
@@ -87,5 +99,20 @@ class SendQuotationController extends SessionController
         }
     
         return $this->response->setJSON($response);
+    }
+    
+    private function generateReference($userId)
+    {
+        $requestQuotationModel = new RequestQuotationModel();
+    
+        // Get today's date in YYYYMMDD format
+        $todayDate = date('Ymd');
+    
+        // Count existing requests for the user on the current date
+        $count = $requestQuotationModel->like('reference', $todayDate, 'after')->where('user_id', $userId)->countAllResults() + 1;
+    
+        // Generate the reference in YYYYMMDD-NNN format
+        $reference = $todayDate . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        return $reference;
     }
 }

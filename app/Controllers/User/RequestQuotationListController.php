@@ -366,20 +366,24 @@ class RequestQuotationListController extends SessionController
                 foreach ($fileArray as $assemblyFile) {
                     if ($assemblyFile->isValid() && !$assemblyFile->hasMoved()) {
                         $newFileName2 = $assemblyFile->getRandomName();
+                        $originalName = $assemblyFile->getClientName();
                         if (!$assemblyFile->move($uploadPath2, $newFileName2)) {
                             log_message('error', 'Failed to upload assembly file: ' . $assemblyFile->getErrorString());
                             return $this->fail('Failed to upload assembly file: ' . $assemblyFile->getErrorString(), ResponseInterface::HTTP_BAD_REQUEST);
                         }
-                        $assemblyFilePaths[] = 'uploads/assembly-files/' . $newFileName2;
+                        $assemblyFilePaths[] = [
+                            'path' => 'uploads/assembly-files/' . $newFileName2,
+                            'original_name' => $originalName,
+                        ];
                     }
                 }
             }
         }
-
-        foreach ($assemblyFilePaths as $path) {
+        foreach ($assemblyFilePaths as $fileData) {
             $assemblyPrintFilesModel->insert([
                 'request_quotation_id' => $requestQuotationId,
-                'assembly_print_file_location' => $path,
+                'assembly_print_file_location' => $fileData['path'],
+                'filename' => $fileData['original_name'],
             ]);
         }
     
@@ -405,6 +409,7 @@ class RequestQuotationListController extends SessionController
                 }
                 // Generate a new filename to avoid conflicts
                 $newFileName = $printFile->getRandomName();
+                $originalFileName = $printFile->getClientName();
                 // Move the file to the designated folder
                 $printFile->move(FCPATH . 'uploads/print-files', $newFileName);
     
@@ -416,6 +421,7 @@ class RequestQuotationListController extends SessionController
                     'material' => $material,
                     'quantity' => $quantity,
                     'print_location' => 'uploads/print-files/' . $newFileName, // Assuming you have a field to store the filename
+                    'print_location_original_name' => $originalFileName, // Assuming you have a field to store the filename
                 ];
             } else {
                 // Update the data without changing the file
@@ -473,21 +479,21 @@ class RequestQuotationListController extends SessionController
         $quotationItemsModel = new QuotationItemsModel();
         $requestQuotationModel = new RequestQuotationModel();
         $assemblyPrintFilesModel = new AssemblyPrintFilesModel();
-
+    
         $requestQuotation = $requestQuotationModel->find($id);
         $quotationItems = $quotationItemsModel->where('request_quotation_id', $requestQuotation['request_quotation_id'])->findAll();
         $assemblyFiles = $assemblyPrintFilesModel->where('request_quotation_id', $requestQuotation['request_quotation_id'])->findAll();
         $user_id = session()->get('user_user_id');
-
+    
         $data = [
             'reference' => $this->generateReference(),
             'user_id' => $user_id,
             'status' => 'Pending',
             'datesubmitted' => date('Y-m-d')
         ];
-
+    
         $inserted = $requestQuotationModel->insert($data);
-
+    
         if($inserted) {
             $newFileData = [];
             if($assemblyFiles) {
@@ -495,34 +501,33 @@ class RequestQuotationListController extends SessionController
                     if (!empty($files['assembly_print_file_location']) && file_exists(FCPATH . $files['assembly_print_file_location'])) {
                         $newFileName = $this->copyFile(FCPATH . $files['assembly_print_file_location'], 'uploads/assembly-files');
                         $newFileData['assembly_print_file_location'] = 'uploads/assembly-files/' . $newFileName;
+    
+                        // Insert only if the new file path is set
+                        $data = [
+                            'request_quotation_id' => $inserted,
+                            'assembly_print_file_location' => $newFileData['assembly_print_file_location']
+                        ];
+                        $assemblyPrintFilesModel->insert($data);
                     }
-                    $data = [
-                        'request_quotation_id' => $inserted,
-                        'assembly_print_file_location' => $newFileData['assembly_print_file_location'] ?? null
-                    ];
-                    $assemblyPrintFilesModel->insert($data);
                 }
             }
             if($quotationItems) {
                 foreach($quotationItems as $item) {
-
-                    // Handle file_location
                     if (!empty($item['file_location']) && file_exists(FCPATH . $item['file_location'])) {
                         $newFileName = $this->copyFile(FCPATH . $item['file_location'], 'uploads/quotation-files');
                         $newFileData['file_location'] = 'uploads/quotation-files/' . $newFileName;
                     }
     
-                    // Handle stl_location
                     if (!empty($item['stl_location']) && file_exists(FCPATH . $item['stl_location'])) {
                         $newFileName = $this->copyFile(FCPATH . $item['stl_location'], 'uploads/quotation-files');
                         $newFileData['stl_location'] = 'uploads/quotation-files/' . $newFileName;
                     }
     
-                    // Handle print_location
                     if (!empty($item['print_location']) && file_exists(FCPATH . $item['print_location'])) {
                         $newFileName = $this->copyFile(FCPATH . $item['print_location'], 'uploads/print-files');
                         $newFileData['print_location'] = 'uploads/print-files/' . $newFileName;
                     }
+    
                     $data = [
                         'request_quotation_id' => $inserted,
                         'partnumber' => $item['partnumber'],
@@ -533,8 +538,13 @@ class RequestQuotationListController extends SessionController
                         'file_location' => $newFileData['file_location'] ?? null,
                         'stl_location' => $newFileData['stl_location'] ?? null,
                         'print_location' => $newFileData['print_location'] ?? null,
+                        'print_location' => $newFileData['print_location_original_name'] ?? null,
                     ];
-                    $quotationItemsModel->insert($data);
+    
+                    // Insert only if at least one file location is set
+                    if ($data['file_location'] || $data['stl_location'] || $data['print_location']) {
+                        $quotationItemsModel->insert($data);
+                    }
                 }
             }
             $response = [
@@ -549,8 +559,7 @@ class RequestQuotationListController extends SessionController
             ];
         }
         return $this->response->setJSON($response);
-
-    }
+    }    
     private function copyFile($sourcePath, $destinationDir)
     {
         $newFileName = uniqid() . '_' . basename($sourcePath);
@@ -594,20 +603,18 @@ class RequestQuotationListController extends SessionController
             // Add assembly print files to the zip under the 'assembly-files' folder
             foreach ($assemblyFiles as $file) {
                 if (!empty($file['assembly_print_file_location']) && file_exists(FCPATH . $file['assembly_print_file_location'])) {
-                    $zip->addFile(FCPATH . $file['assembly_print_file_location'], 'assembly-files/' . basename($file['assembly_print_file_location']));
+                    $zip->addFile(FCPATH . $file['assembly_print_file_location'], 'assembly-files/' . basename($file['filename']));
                 }
             }
     
             // Add quotation items files to the zip under the corresponding folders
             foreach ($quotationItems as $item) {
                 if (!empty($item['file_location']) && file_exists(FCPATH . $item['file_location'])) {
-                    $zip->addFile(FCPATH . $item['file_location'], 'quotation-files/' . basename($item['file_location']));
-                }
-                if (!empty($item['stl_location']) && file_exists(FCPATH . $item['stl_location'])) {
-                    $zip->addFile(FCPATH . $item['stl_location'], 'stl-files/' . basename($item['stl_location']));
+                    // Use the original filename stored in the 'filename' column from the database
+                    $zip->addFile(FCPATH . $item['file_location'], 'quotation-files/' . $item['filename']);
                 }
                 if (!empty($item['print_location']) && file_exists(FCPATH . $item['print_location'])) {
-                    $zip->addFile(FCPATH . $item['print_location'], 'print-files/' . basename($item['print_location']));
+                    $zip->addFile(FCPATH . $item['print_location'], 'print-files/' . basename($item['print_location_original_name']));
                 }
             }
     
@@ -647,7 +654,7 @@ class RequestQuotationListController extends SessionController
             // Add assembly print files to the zip under the 'assembly-files' folder
             foreach ($assemblyFiles as $file) {
                 if (!empty($file['assembly_print_file_location']) && file_exists(FCPATH . $file['assembly_print_file_location'])) {
-                    $zip->addFile(FCPATH . $file['assembly_print_file_location'], 'assembly-files/' . basename($file['assembly_print_file_location']));
+                    $zip->addFile(FCPATH . $file['assembly_print_file_location'], 'assembly-files/' . basename($file['filename']));
                 }
             }
 

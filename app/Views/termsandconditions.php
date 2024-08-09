@@ -30,7 +30,7 @@
                         <p>If a return or exchange is approved due to a defect or error on our part, we will cover the shipping costs. In all other scenarios, shipping costs for returning an item are the responsibility of the customer and are non-refundable.</p>
                         
                         <h3>Contact Us</h3>
-                        <p>If you have any questions about our Refund and Cancellation Policy, please do not hesitate to contact us at <a href="mailto:info@lab-ready.net">info@lab-ready.net</a>.</p>
+                        <p>If you have any questions about our Refund and Cancellation Policy, please do not hesitate to contact us at <a href="mailto:info@lab-ready.net">charlie@lab-ready.net</a>.</p>
                     </div>
                 </p>
             </div>

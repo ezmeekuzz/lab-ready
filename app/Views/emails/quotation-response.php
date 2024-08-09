@@ -137,7 +137,7 @@
             <div class="content">
                 <div class="con-text email-content">
                     <h3>Hi <?=$userDetails['fullname'];?>. Quote (<?=$requestQuotationDetails['reference'];?>) is ready.</h3>
-                    <p><a href="<?=base_url();?>quotations" style="background: #000; color: #fff;">View Quote</a></p>
+                    <p><a href="<?=base_url();?>user/login?redirect=quotation" style="background: #000; color: #fff;">View Quote</a></p>
                     <p>Please contact us with any questions. Thank you!</p>
                 </div>
                 <div class="signature">

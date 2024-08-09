@@ -143,36 +143,7 @@ class RequestQuotationListController extends SessionController
     
         return $this->response->setJSON($response);
     }
-    public function getQuotationList($id)
-    {
-        $request = service('request');
-    
-        // Check if the request is AJAX
-        if ($request->isAJAX()) {
-            // Assuming you have a model called QuotationListModel
-            $quotationItemsModel = new QuotationItemsModel();
-    
-            // Fetch the quotation list data
-            $data = $quotationItemsModel->where('request_quotation_id', $id)->findAll(); // Adjust this according to your actual query or method in the model
-    
-            // Check if data is fetched successfully
-            if ($data !== null) {
-                // Prepare the response
-                $response = [
-                    'status' => 'success',
-                    'data' => $data,
-                ];
-                return $this->response->setJSON($response);
-            } else {
-                // Return error message if data retrieval fails
-                return $this->response->setStatusCode(ResponseInterface::HTTP_NOT_FOUND)->setJSON(['error' => 'No data found']);
-            }
-        } else {
-            // Return error for non-AJAX requests
-            return $this->response->setStatusCode(ResponseInterface::HTTP_FORBIDDEN)->setJSON(['error' => 'Invalid request type']);
-        }
-    }
-    public function downloadExcelFile($id)
+    public function downloadFiles($id)
     {
         // Load your models and get the data
         $quotationItemsModel = new QuotationItemsModel();
@@ -194,6 +165,7 @@ class RequestQuotationListController extends SessionController
         $sheet = $spreadsheet->getActiveSheet();
         
         $sheet->setTitle('Quotation Item');
+        $secondSheet = $this->createSecondSheet($spreadsheet, $id);
         // Define the font style array with lighter text color
         $lighterFontStyleArray = [
             'font' => [
@@ -290,6 +262,8 @@ class RequestQuotationListController extends SessionController
         $sheet->setCellValue('H6', 'Price');
         $sheet->setCellValue('I6', 'Note');
         
+        $sheet->getStyle('A6:I6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        
         // Apply additional styles if needed
         $titleStyleArray = [
             'font' => [
@@ -376,12 +350,13 @@ class RequestQuotationListController extends SessionController
             $sheet->getStyle('A' . $row . ':I' . $row)->applyFromArray($centerAlignment);
             $sheet->getStyle('A' . $row . ':I' . $row)->getAlignment()->setWrapText(true);
             $sheet->getRowDimension($row)->setRowHeight(30); // Adjust row height for padding
+            $sheet->getStyle('A'.$row.':I'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $row++;
         }
         $subtotalRow = $row; // This will be the next row after the loop
         $sheet->mergeCells('A' . $subtotalRow . ':G' . $subtotalRow);
         $sheet->setCellValue('A' . $subtotalRow, 'Subtotal (components):');
-        
+        $sheet->getStyle('A'.$subtotalRow.':I'.$subtotalRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         // Apply styles for the subtotal row
         $sheet->getStyle('A' . $subtotalRow . ':G' . $subtotalRow)->applyFromArray($centerAlignment);
         $sheet->getStyle('A' . $subtotalRow . ':G' . $subtotalRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT); // Align right
@@ -392,10 +367,10 @@ class RequestQuotationListController extends SessionController
         
         // Set the content for columns H and I in the subtotal row
         $sheet->setCellValue('H' . $subtotalRow, '=SUM(H7:H' . ($row - 1) . ')'); // Calculate subtotal (sum of H column cells above)
-        $sheet->setCellValue('I' . $subtotalRow, 'Add Note...');
+        $sheet->setCellValue('I' . $subtotalRow, '');
         
         // Apply styles for columns H and I
-        $sheet->getStyle('H' . $subtotalRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
+        $sheet->getStyle('H' . $subtotalRow)->getNumberFormat()->setFormatCode('$#,##0.00');
         $sheet->getStyle('H' . $subtotalRow . ':I' . $subtotalRow)->applyFromArray($centerAlignment);
 
         $assemblyRow = $row+1;
@@ -409,6 +384,7 @@ class RequestQuotationListController extends SessionController
         $sheet->getRowDimension($assemblyRow)->setRowHeight(30); // Adjust row height for padding
         $sheet->setCellValue('H' . $assemblyRow, '0.00'); // Calculate subtotal (sum of H column cells above)
         $sheet->setCellValue('I' . $assemblyRow, 'Add Note...');
+        $sheet->getStyle('A'.$assemblyRow.':I'.$assemblyRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         
         // Apply styles for columns H and I
         $sheet->getStyle('H' . $assemblyRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
@@ -432,6 +408,7 @@ class RequestQuotationListController extends SessionController
         // Apply styles for columns H and I
         $sheet->getStyle('H' . $shippingRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
         $sheet->getStyle('H' . $shippingRow . ':I' . $shippingRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('A'.$shippingRow.':I'.$shippingRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $totalRow = $shippingRow+1;
 
@@ -450,6 +427,7 @@ class RequestQuotationListController extends SessionController
         // Apply styles for columns H and I
         $sheet->getStyle('H' . $totalRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
         $sheet->getStyle('H' . $totalRow . ':I' . $totalRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('A'.$totalRow.':I'.$totalRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $signatureRow = $totalRow+1;
 
@@ -465,12 +443,7 @@ class RequestQuotationListController extends SessionController
         $sheet->getStyle('A' . $signatureRow . ':I' . $signatureRow)->applyFromArray($backgroundStyleArray);
         $sheet->getStyle('A' . $signatureRow . ':I' . $signatureRow)->applyFromArray($contentStyleArray);
         $sheet->getStyle('A' . $signatureRow . ':I' . $signatureRow)->applyFromArray($leftAlignment);
-
-        $additionalSpreadsheet = $this->createAdditionalWorksheet($id);
-        $additionalSheet = $additionalSpreadsheet->getActiveSheet();
-    
-        // Add the additional worksheet to the main spreadsheet
-        $spreadsheet->addSheet($additionalSheet);
+        $sheet->getStyle('A'.$signatureRow.':I'.$signatureRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // Save the spreadsheet to a temporary file
         $tempExcelFile = tempnam(sys_get_temp_dir(), 'excel') . '.xlsx';
@@ -484,25 +457,23 @@ class RequestQuotationListController extends SessionController
         // Open the zip file in memory
         if ($zip->open($zipFileName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
             // Add the Excel file to the zip
-            $zip->addFile($tempExcelFile, 'request_quotations_' . date('Ymd_His') . '.xlsx');
+            $zip->addFile($tempExcelFile, $requestQuotation['reference'] . '.xlsx');
         
             // Add assembly print files to the zip under the 'assembly-files' folder
             foreach ($assemblyFiles as $file) {
                 if (!empty($file['assembly_print_file_location']) && file_exists(FCPATH . $file['assembly_print_file_location'])) {
-                    $zip->addFile(FCPATH . $file['assembly_print_file_location'], 'assembly-files/' . basename($file['assembly_print_file_location']));
+                    $zip->addFile(FCPATH . $file['assembly_print_file_location'], 'assembly-files/' . basename($file['filename']));
                 }
             }
         
             // Add quotation items files to the zip under the corresponding folders
             foreach ($quotationItems as $item) {
                 if (!empty($item['file_location']) && file_exists(FCPATH . $item['file_location'])) {
-                    $zip->addFile(FCPATH . $item['file_location'], 'quotation-files/' . basename($item['file_location']));
-                }
-                if (!empty($item['stl_location']) && file_exists(FCPATH . $item['stl_location'])) {
-                    $zip->addFile(FCPATH . $item['stl_location'], 'stl-files/' . basename($item['stl_location']));
+                    // Use the original filename stored in the 'filename' column from the database
+                    $zip->addFile(FCPATH . $item['file_location'], 'quotation-files/' . $item['filename']);
                 }
                 if (!empty($item['print_location']) && file_exists(FCPATH . $item['print_location'])) {
-                    $zip->addFile(FCPATH . $item['print_location'], 'print-files/' . basename($item['print_location']));
+                    $zip->addFile(FCPATH . $item['print_location'], 'print-files/' . basename($item['print_location_original_name']));
                 }
             }
         
@@ -525,79 +496,83 @@ class RequestQuotationListController extends SessionController
         } else {
             return $this->response->setJSON(['success' => false, 'message' => 'Failed to create zip file.']);
         }
-    }    
-    private function createAdditionalWorksheet($id)
+    }   
+    private function createSecondSheet($spreadsheet, $id)
     {
         $quotationItemsModel = new QuotationItemsModel();
         $requestQuotationModel = new RequestQuotationModel();
-        $assemblyPrintFilesModel = new AssemblyPrintFilesModel();
+        
+        $requestQuotation = $requestQuotationModel
+            ->join('users', 'users.user_id=request_quotations.user_id', 'left')
+            ->find($id);
+        $quotationItems = $quotationItemsModel
+            ->join('request_quotations', 'request_quotations.request_quotation_id=quotation_items.request_quotation_id', 'left')
+            ->join('users', 'request_quotations.user_id=users.user_id', 'left')
+            ->where('quotation_items.request_quotation_id', $id)
+            ->findAll();
+        $newSheet = new \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet($spreadsheet, 'Print Files');
+        $spreadsheet->addSheet($newSheet);
+    
+        // Set title header for the new sheet
+        $newSheet->setCellValue('A1', 'Print File (Y/N)');
+        $newSheet->setCellValue('B1', 'Part No.');
+        $newSheet->setCellValue('C1', 'Vendor Quote');
+        $newSheet->setCellValue('D1', 'Shipping');
+        $newSheet->setCellValue('E1', '% Markup');
+        $newSheet->setCellValue('F1', 'Shop Time');
+        $newSheet->setCellValue('G1', 'Total');
+        
+        // Apply some styling if needed (e.g., bold, font size)
+        $newSheet->getStyle('A1:G1')->getFont()->setBold(true)->setSize(12);
+    
+        // Center the title text horizontally and vertically
+        $newSheet->getStyle('A1:G1')->getAlignment()->setHorizontal('center')->setVertical('center');
 
-        // Initialize PHPExcel library and new spreadsheet
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        
-        // Set the worksheet title
-        $sheet->setTitle('Print Files');
-        
-        // Add data to the new worksheet
-        $sheet->setCellValue('A1', 'Print File (Y or N)');
-        $sheet->setCellValue('B1', 'Print No.');
-        $sheet->setCellValue('C1', 'Vendor Quote');
-        $sheet->setCellValue('D1', 'Shipping');
-        $sheet->setCellValue('E1', '% Markup');
-        $sheet->setCellValue('F1', 'Shop Time');
-        $sheet->setCellValue('G1', 'Total');
-        // Set some basic styles if needed
-        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:G1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-        $sheet->getRowDimension(1)->setRowHeight(30);
-        
-        $totalWidthPixels = 1500;
-        $numColumns = 7; // Columns A to G
-        $approxPixelsPerColumn = $totalWidthPixels / $numColumns;
-        
-        // Example conversion: 1 unit ≈ 8 pixels
-        $approxUnitsPerColumn = $approxPixelsPerColumn / 8;
-        
-        // Set widths for columns A to G
-        for ($column = 'A'; $column <= 'G'; $column++) {
-            $sheet->getColumnDimension($column)->setWidth($approxUnitsPerColumn);
-        }
+        $newSheet->getStyle('A1:G1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+        ->getStartColor()->setARGB('FFADADAD');
+        $newSheet->getStyle('A1:G1')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $quotationItems = $quotationItemsModel->where('request_quotation_id', $id)->findAll();
+        // Set padding (indentation) for each cell
+        $newSheet->getRowDimension(1)->setRowHeight(25);  
+        // Set the width of each column to 1300 (if it's a pixel-based width)
+        $columnWidth = 1500 / 7; // Distribute the 1300 width across the 7 columns
+        $approxPerCol = $columnWidth / 8;
+        $newSheet->getColumnDimension('A')->setWidth($approxPerCol);
+        $newSheet->getColumnDimension('B')->setWidth($approxPerCol);
+        $newSheet->getColumnDimension('C')->setWidth($approxPerCol);
+        $newSheet->getColumnDimension('D')->setWidth($approxPerCol);
+        $newSheet->getColumnDimension('E')->setWidth($approxPerCol);
+        $newSheet->getColumnDimension('F')->setWidth($approxPerCol);
+        $newSheet->getColumnDimension('G')->setWidth($approxPerCol);
         $row = 2;
-        foreach ($quotationItems as $index => $item) {
-            $sheet->setCellValue('A' . $row, ($item['print_location']) ? 'Y' : 'N'); // Replace with your actual field names
-            $sheet->setCellValue('B' . $row, $index);
-            $sheet->setCellValue('C' . $row, '');
-            $sheet->setCellValue('D' . $row, '');
-            $sheet->setCellValue('E' . $row, '');
-            $sheet->setCellValue('F' . $row, '');
-            $sheet->setCellValue('G' . $row,'0.00');
+        foreach($quotationItems as $items) {
+            $newSheet->setCellValue('A' . $row, ($items['print_location']) ? 'Y' : 'N');
+            $newSheet->setCellValue('B' . $row, $items['print_location_original_name']);
+            $newSheet->setCellValue('C' . $row, '');
+            $newSheet->setCellValue('D' . $row, '');
+            $newSheet->setCellValue('E' . $row, '');
+            $newSheet->setCellValue('F' . $row, '');
+            $newSheet->setCellValue('G' . $row, "=C$row*(1+E$row)+D$row+(F$row*120)");
+            $newSheet->getRowDimension($row)->setRowHeight(30);  
+            $newSheet->getStyle('A'.$row.':G'.$row.'')->getAlignment()->setHorizontal('center')->setVertical('center');
+            $newSheet->getStyle('A'.$row.':G'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $newSheet->getStyle('C'.$row.':G'.$row)->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_CURRENCY_USD);
             $row++;
         }
-
         $blankRow = $row;
-        
-        $sheet->mergeCells('A' . $blankRow . ':G' . $blankRow);
-        $boldHeaderStyleArray = [
-            'font' => [
-                'bold' => true,
-                'name' => 'Crete Round',
-                'size' => 12,
-                'color' => ['rgb' => 'FFFFFF'], // Light gray text color
-            ],
-            'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, // Vertical alignment to simulate padding
-            ],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'color' => ['rgb' => '595959'], // Background color
-            ],
-        ];
-        $sheet->getStyle('A'.$blankRow.':I'.$blankRow.'')->applyFromArray($boldHeaderStyleArray);
-        // Return the spreadsheet object
-        return $spreadsheet;
+        $newSheet->mergeCells('A'.$blankRow.':G'.$blankRow.'');
+        $newSheet->getRowDimension($blankRow)->setRowHeight(30);  
+        $newSheet->getStyle('A'.$blankRow.':G'.$blankRow.'')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFADADAD');
+        $newSheet->getStyle('A'.$blankRow.':G'.$blankRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $lastRow = $blankRow + 1;
+        $newSheet->setCellValue('A'.$lastRow.'', '');
+        $newSheet->mergeCells('B'.$lastRow.':E'.$lastRow.'');
+        $newSheet->setCellValue('B'.$lastRow.'', 'Fit, finish and assembly');
+        $newSheet->setCellValue('F'.$lastRow.'', '');
+        $newSheet->setCellValue('G' . $lastRow, "=F$lastRow*120");
+        $newSheet->getStyle('A'.$lastRow.':G'.$lastRow.'')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $newSheet->getRowDimension($lastRow)->setRowHeight(30); 
+        $newSheet->getStyle('A'.$lastRow.':G'.$lastRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        return $newSheet;
     }
 }

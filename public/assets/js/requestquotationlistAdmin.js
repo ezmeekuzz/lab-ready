@@ -32,13 +32,10 @@ $(document).ready(function () {
                 "orderable": false,
                 "render": function (data, type, row) {
                     return `
-                        <a href="#" title="Quotation List" class="quotation-list" data-id="${row.request_quotation_id}" style="color: orange;">
-                            <i class="fa fa-file-text" style="font-size: 18px;"></i>
-                        </a>
                         <a href="#" title="Update Status" class="update-status" data-id="${row.request_quotation_id}" style="color: blue;">
                             <i class="ti ti-pencil" style="font-size: 18px;"></i>
                         </a>
-                        <a href="/download-excel-file/${row.request_quotation_id}" download title="Download Excel File" style="color: green;">
+                        <a href="/download-files/${row.request_quotation_id}" download title="Download Excel File" style="color: green;">
                             <i class="ti ti-download" style="font-size: 18px;"></i>
                         </a>`;
                 }
@@ -46,10 +43,12 @@ $(document).ready(function () {
         ],
         "createdRow": function (row, data) {
             $(row).attr('data-id', data.request_quotation_id);
+            $(row).attr('data-reference', data.reference);
 
             $('td', row).each(function (index) {
                 if (index !== 7) { // Assuming the actions column is at index 5
                     $(this).attr('data-user-id', data.uid);
+                    $(this).attr('data-reference', data.reference);
                 }
             });
         },
@@ -68,9 +67,11 @@ $(document).ready(function () {
 
         let userId = $(this).data('user-id');
         let requestQuotationId = $(this).closest('tr').data('id');
+        let reference = $(this).closest('tr').data('reference');
 
         $('#user_id').val(userId);
         $('#request_quotation_id').val(requestQuotationId);
+        $('#productname').val(reference);
 
         $('#quotationModal').modal('show');
     });    
@@ -101,127 +102,6 @@ $(document).ready(function () {
             pan: [0, 0] // Center the model initially
         });
     }
-    $(document).on('click', '.quotation-list', function (e) {
-        e.preventDefault();
-    
-        let requestQuotationId = $(this).data('id');
-    
-        // Fetch quotation list data via AJAX
-        $.ajax({
-            url: '/requestquotationmasterlist/getQuotationList/' + requestQuotationId,
-            method: 'GET',
-            success: function (response) {
-                if (response.status === 'success') {
-                    // Clear previous content
-                    $('#quotationContainer').empty();
-    
-                    // Iterate over each item in the response data
-                    response.data.forEach(item => {
-                        // Create unique IDs for elements
-                        let stlContId = 'stlCont_' + item.quotation_item_id;
-                        let partNumberId = 'partNumber_' + item.quotation_item_id;
-                        let quoteTypeId = 'quotetype_' + item.quotation_item_id;
-                        let materialId = 'material_' + item.quotation_item_id;
-                        let quantityId = 'quantity_' + item.quotation_item_id;
-                        let downloadBTN = "";
-                        let downloadAssemblyBTN = "";
-                        if (item.print_location !== null) {
-                            downloadBTN = `<a href="${item.print_location}" download class="btn bg-dark text-white mb-2"><i class="fa fa-download"></i> Download Print File</a>`;
-                        }
-                        $('#downloadAssembly').attr('data-id', item.request_quotation_id);
-                        // Create HTML for each item
-                        let itemHtml = `
-                            <div class="col-lg-12">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-lg-6 mb-5">
-                                                <div id="${stlContId}" style="height: 250px;"></div>
-                                            </div>
-                                            <div class="col-lg-6">
-                                                <div class="form-group" hidden>
-                                                    <input type="text" class="form-control" name="quotation_item_id" value="${item.quotation_item_id}" id="${partNumberId}" placeholder="Part Number">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="partnumber">Part Number</label>
-                                                    <input type="text" class="form-control" name="partnumber" id="${partNumberId}" value="${item.partnumber}" placeholder="Part Number" readonly>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="quotetype">Quote Type</label>
-                                                    <input type="text" class="form-control" name="quotetype" id="${quoteTypeId}" value="${item.quotetype}" placeholder="Part Number" readonly>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="material">Material</label>
-                                                    <textarea name="material" id="${materialId}" class="form-control" placeholder="Materials" style="min-height: 150px;" readonly>${item.material}</textarea>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="quantity">Quantity</label>
-                                                    <input type="text" class="form-control" name="quantity" id="${quantityId}" value="${item.quantity}" placeholder="Quantity" readonly>
-                                                </div>
-                                                ${downloadBTN}<br/>
-                                                ${downloadAssemblyBTN}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>`;
-                        
-                        // Append the item HTML to the container
-                        $('#quotationContainer').append(itemHtml);
-                        const stlContainer = document.getElementById(stlContId);
-                        if (stlContainer) {
-                            console.log("STL Container found:", stlContainer);
-                            if (item.filetype == 'SLDPRT') {
-                                console.log("Appending SLDPRT");
-                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/SLDPRT-icon.png" alt="SLDPRT Icon" class="file-icon">';
-                            } else if (item.filetype === 'X_T') {
-                                console.log("Appending X_T");
-                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/X_T-icon.png" alt="X_T Icon" class="file-icon">';
-                            } else if (item.filetype === 'PDF') {
-                                console.log("Appending PDF");
-                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/PDF-icon.png" alt="PDF Icon" class="file-icon">';
-                            } else if (item.filetype === 'STEP' && item.stl_location == null) {
-                                console.log("Appending STEP");
-                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/STEP-icon.png" alt="PDF Icon" class="file-icon">';
-                            }  else if (item.filetype === 'IGS' && item.stl_location == null) {
-                                console.log("Appending IGS");
-                                stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/IGS-icon.webp" alt="PDF Icon" class="file-icon">';
-                            } else {
-                                if (item.stl_location !== null) {
-                                    console.log("Initializing STL Viewer");
-                                    console.log("STL Location:", baseURL + item.stl_location);
-                                    initializeStlViewer(stlContainer, baseURL + item.stl_location);
-                                }
-                            }
-                        } else {
-                            console.log("STL Container not found or not recognized as a jQuery object:", stlContainer);
-                        }
-                    });
-    
-                    // Show the modal
-                    $('#quotationListModal').modal('show');
-    
-                    // Clear STL viewer when modal is hidden
-                    $('#quotationListModal').on('hidden.bs.modal', function (e) {
-                        $('.stlViewer').empty(); // Assuming the STL viewer container has a class of 'stlViewer'
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Failed to fetch quotation list!',
-                    });
-                }
-            },
-            error: function () {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'An error occurred while fetching the quotation list!',
-                });
-            }
-        });
-    });
     
     $(document).on('click', '.delete-request', function (e) {
         e.preventDefault();

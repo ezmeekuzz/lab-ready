@@ -9,7 +9,8 @@ use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 use App\Models\UserQuotationsModel;
 use App\Models\QuotationsModel;
-use App\Models\RequestQuotationsModel;
+use App\Models\RequestQuotationModel;
+use App\Models\UsersModel;
 
 class QuotationsController extends SessionController
 {
@@ -63,6 +64,8 @@ class QuotationsController extends SessionController
         $state = $this->request->getPost('state');
         $zipcode = $this->request->getPost('zipcode');
         $quotationsModel = new QuotationsModel();
+        $usersModel = new UsersModel();
+        $requestQuotationModel = new RequestQuotationModel();
         $data = [
             'quotationnId' => $quotationId
         ];
@@ -73,12 +76,21 @@ class QuotationsController extends SessionController
         ->set('state', $state)
         ->set('zipcode', $zipcode)
         ->update();
+
+        $quotationDetails = $quotationsModel->find($quotationId);
     
         if ($updated) {
+            $userDetails = $usersModel->find(session()->get('user_user_id'));
+            $requestQuotationDetails = $requestQuotationModel->find($quotationDetails['request_quotation_id']);
+            $data = [
+                'userDetails' => $userDetails,
+                'requestQuotationDetails' => $requestQuotationDetails,
+            ];
             $message = view('emails/payment-success', $data);
             // Email sending code
             $email = \Config\Services::email();
-            $email->setTo('rustomcodilan@gmail.com');
+            $email->setTo($userDetails['email']);
+            $email->setCC('rustomcodilan@gmail.com');
             $email->setSubject('We\'ve got you\'re payment!');
             $email->setMessage($message);
             if ($email->send()) {

@@ -74,13 +74,13 @@
                     </div>
                     <div class="col-lg-12 mb-5" id="AssemblyPrintFile">
                         <div class="row">
-                            <div class="col-lg-6">
+                            <div class="col-lg-8">
                                 <div class="form-group">
                                     <span class="text-danger">If fit, finish and assembly is required. Please assembly print here.</span>
                                     <label for="assemblyFile">(Assembly Print File) Upload Multiple Files</label>
                                     <div class="custom-file">
-                                        <label class="custom-file-label" for="assemblyFile">Choose file</label>
-                                        <input type="file" class="custom-file-input" id="assemblyFile" name="assemblyFile[]" accept="application/pdf" multiple>
+                                        <label class="custom-file-label" for="assemblyFile">Click BROWSE and select ALL Assembly file to Upload</label>
+                                        <input type="file" class="custom-file-input" id="assemblyFile" name="assemblyFile[]" accept=".pdf, .stl, .step, .iges" multiple>
                                     </div>
                                 </div>
                             </div>

@@ -95,9 +95,7 @@
         $(document).ready(function() {
             // Check if the current URL has the redirect parameter set to "quote"
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('redirect') === 'quote') {
-                $('#redirect').val('quote');
-            }
+            $('#redirect').val(urlParams.get('redirect'));
 
             $('#signIn').submit(function(event) {
                 // Prevent default form submission

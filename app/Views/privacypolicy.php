@@ -57,7 +57,7 @@
                         <p><span style="font-weight: 400;"><strong>Changes to This Policy</strong></span></p>
                         <p><span style="font-weight: 400;">We may update this Policy from time to time. If we make changes, we will notify you by revising the date at the top of the policy and, in some cases, we may provide you with additional notice (such as adding a statement to our homepage or sending you a notification).</span></p>
                         <p><span style="font-weight: 400;"><strong>Contact Us</strong></span></p>
-                        <p><span style="font-weight: 400;">If you have any questions about this Policy, please contact us at: info@lab-ready.net</span></p>
+                        <p><span style="font-weight: 400;">If you have any questions about this Policy, please contact us at: charlie@lab-ready.net</span></p>
                     </div>
                 </p>
             </div>

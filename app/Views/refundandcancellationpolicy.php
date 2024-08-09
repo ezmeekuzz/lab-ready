@@ -40,7 +40,7 @@
                         <p><span style="font-weight: 400;">Please refer to our Refund and Cancellation Policy for details on refunds and the process for canceling an order.</span></p>
                         <p>&nbsp;</p>
                         <p><span style="font-weight: 400;"><strong>Contact Us</strong></span></p>
-                        <p><span style="font-weight: 400;">If you have any questions regarding our pricing, please feel free to contact us at info@lab-ready.net.</span></p>
+                        <p><span style="font-weight: 400;">If you have any questions regarding our pricing, please feel free to contact us at charlie@lab-ready.net.</span></p>
                     </div>
                 </p>
             </div>

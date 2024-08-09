@@ -13,7 +13,7 @@ class AssemblyPrintFilesModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'request_quotation_id', 'assembly_print_file_location'
+        'request_quotation_id', 'assembly_print_file_location', 'filename'
     ];
 
     protected bool $allowEmptyInserts = false;

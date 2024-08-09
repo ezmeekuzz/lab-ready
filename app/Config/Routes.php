@@ -31,13 +31,12 @@ $routes->get('/request-quotation-masterlist', 'Admin\RequestQuotationListControl
 $routes->post('/requestquotationmasterlist/getData', 'Admin\RequestQuotationListController::getData');
 $routes->post('/requestquotationmasterlist/insert', 'Admin\RequestQuotationListController::insert');
 $routes->post('/requestquotationmasterlist/updateStatus/(:num)', 'Admin\RequestQuotationListController::updateStatus/$1');
-$routes->get('/requestquotationmasterlist/getQuotationList/(:num)', 'Admin\RequestQuotationListController::getQuotationList/$1');
 $routes->get('/subscribers-masterlist', 'Admin\SubscribersMasterlistController::index');
 $routes->post('/subscribersmasterlist/getData', 'Admin\SubscribersMasterlistController::getData');
 $routes->delete('/subscribersmasterlist/delete/(:num)', 'Admin\SubscribersMasterlistController::delete/$1');
 $routes->get('/send-newsletter', 'Admin\SendNewsletterController::index');
 $routes->post('/sendnewsletter/sendMessage', 'Admin\SendNewsletterController::sendMessage');
-$routes->get('/download-excel-file/(:num)', 'Admin\RequestQuotationListController::downloadExcelFile/$1');
+$routes->get('/download-files/(:num)', 'Admin\RequestQuotationListController::downloadFiles/$1');
 /*Admin*/
 
 /*User*/

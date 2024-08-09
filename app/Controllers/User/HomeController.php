@@ -47,7 +47,7 @@ class HomeController extends BaseController
                 'UserLoggedIn' => true,
             ]);
     
-            $redirectUrl = $redirect === 'quote' ? '/request-quotation' : '/';
+            $redirectUrl = ($redirect === 'quote') ? '/request-quotation' : (($redirect === 'quotation') ? '/quotations' : '/');
     
             // Prepare response
             $response = [
