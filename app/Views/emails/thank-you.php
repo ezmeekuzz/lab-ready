@@ -132,7 +132,7 @@
                 <h1>Lab-Ready</h1>
             </div>
             <div class="content">
-                <h3 class="title">Hi <?=session()->get('user_fullname')?>. Thank you for requesting a quote.</h3>
+                <p class="title">Hi <?=session()->get('user_fullname')?>. Thank you for requesting a quote.</p>
                 <div class="email-content">
                     <h3>Your quote number is <i><?=$reference;?></i></h3>
                     <p>You should receive a quote within 2-3 working days.</p>

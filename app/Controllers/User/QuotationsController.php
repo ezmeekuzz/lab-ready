@@ -88,11 +88,13 @@ class QuotationsController extends SessionController
             ];
             $message = view('emails/payment-success', $data);
             // Email sending code
+            $pdfFilePath = FCPATH . $quotationDetails['invoicefile'];
             $email = \Config\Services::email();
             $email->setTo($userDetails['email']);
             $email->setCC('rustomcodilan@gmail.com');
             $email->setSubject('We\'ve got you\'re payment!');
             $email->setMessage($message);
+            $email->attach($pdfFilePath);
             if ($email->send()) {
                 $response = [
                     'success' => true,
@@ -192,12 +194,15 @@ class QuotationsController extends SessionController
                     $data = [
                         'requestQuotationDetails' => $requestQuotationDetails
                     ];
+                    $quotationDetails = $quotationsModel->find($quotationId);
                     $message = view('emails/payment-success', $data);
                     // Email sending code
+                    $pdfFilePath = FCPATH . $quotationDetails['invoicefile'];
                     $email = \Config\Services::email();
                     $email->setTo('rustomcodilan@gmail.com');
                     $email->setSubject('We\'ve got you\'re payment!');
                     $email->setMessage($message);
+                    $email->attach($pdfFilePath);
                     if ($email->send()) {
                         $response = [
                             'success' => true,

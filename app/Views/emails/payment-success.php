@@ -136,7 +136,7 @@
             </div>
             <div class="content">
                 <div class="con-text email-content">
-                    <h3>Hi <?=$userDetails['fullname'];?>. Thank you for ordering quote (<?=$requestQuotationDetails['reference'];?>)</h3>
+                    <p>Hi <?=$userDetails['fullname'];?>. Thank you for ordering quote (<?=$requestQuotationDetails['reference'];?>)</p>
                     <p>Please refer to the attached quote for lead times and contact us with any questions. Thank you!</p>
                 </div>
                 <div class="signature">
