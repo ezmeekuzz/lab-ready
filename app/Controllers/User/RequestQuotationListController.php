@@ -9,6 +9,7 @@ use App\Models\RequestQuotationModel;
 use App\Models\QuotationItemsModel;
 use App\Models\AssemblyPrintFilesModel;
 use App\Models\UserQuotationsModel;
+use App\Models\QuotationsModel;
 use ZipArchive;
 
 class RequestQuotationListController extends SessionController
@@ -26,6 +27,7 @@ class RequestQuotationListController extends SessionController
     {
         return datatables('request_quotations')
         ->where('status !=', 'Ongoing')
+        ->where('user_id', session()->get('user_user_id'))
         ->make();
     }
 
@@ -34,19 +36,31 @@ class RequestQuotationListController extends SessionController
         $RequestQuotationModel = new RequestQuotationModel();
         $QuotationItemsModel = new QuotationItemsModel();
         $AssemblyPrintFilesModel = new AssemblyPrintFilesModel();
+        $userQuotationsModel = new UserQuotationsModel();
+        $quotationsModel = new QuotationsModel();
     
-        // Find the quotation by ID
-        $requestQuotation = $RequestQuotationModel->find($id);
-        $quotationItems = $QuotationItemsModel->where('request_quotation_id', $id)->findAll();
+        // Find and delete related quotations
+        $quotations = $quotationsModel->where('request_quotation_id', $id)->findAll();
+        if ($quotations) {
+            foreach ($quotations as $quotation) {
+                if (isset($quotation['invoicefile'])) {
+                    $invoice = $quotation['invoicefile'];
+                    $filePathInvoice = FCPATH . $invoice;
+                    if (file_exists($filePathInvoice)) {
+                        unlink($filePathInvoice);
+                    }
+                }
+                $userQuotationsModel->where('quotation_id', $quotation['quotation_id'])->delete();
+            }
+            $quotationsModel->where('request_quotation_id', $id)->delete();
+        }
+    
+        // Find and delete related assembly files
         $assemblyFiles = $AssemblyPrintFilesModel->where('request_quotation_id', $id)->findAll();
-
-        if($assemblyFiles) {
+        if ($assemblyFiles) {
             foreach ($assemblyFiles as $assemblyFile) {
                 if (isset($assemblyFile['assembly_print_file_location'])) {
-                    // Get the filename of the PDF associated with the quotation
                     $assembly = $assemblyFile['assembly_print_file_location'];
-
-                    // Delete the PDF file from the server
                     $filePathAssembly = FCPATH . $assembly;
                     if (file_exists($filePathAssembly)) {
                         unlink($filePathAssembly);
@@ -56,66 +70,55 @@ class RequestQuotationListController extends SessionController
             $AssemblyPrintFilesModel->where('request_quotation_id', $id)->delete();
         }
     
-        if ($requestQuotation) {
-            if (!empty($quotationItems)) {
-                foreach ($quotationItems as $quotationItem) {
-                    if (isset($quotationItem['file_location'])) {
-                        // Get the filename of the PDF associated with the quotation
-                        $requestFile = $quotationItem['file_location'];
-    
-                        // Delete the PDF file from the server
-                        $filePath = FCPATH . $requestFile;
-                        if (file_exists($filePath)) {
-                            unlink($filePath);
-                        }
-                    }
-                    if (isset($quotationItem['stl_location'])) {
-                        // Get the filename of the PDF associated with the quotation
-                        $requestFileSTL = $quotationItem['stl_location'];
-    
-                        // Delete the PDF file from the server
-                        $filePathSTL = FCPATH . $requestFileSTL;
-                        if (file_exists($filePathSTL)) {
-                            unlink($filePathSTL);
-                        }
-                    }
-                    if (isset($quotationItem['print_location'])) {
-                        // Get the filename of the PDF associated with the quotation
-                        $requestFilePRINT = $quotationItem['print_location'];
-    
-                        // Delete the PDF file from the server
-                        $filePathPRINT = FCPATH . $requestFilePRINT;
-                        if (file_exists($filePathPRINT)) {
-                            unlink($filePathPRINT);
-                        }
-                    }
-                    if (isset($quotationItem['assembly_file_location'])) {
-                        // Get the filename of the PDF associated with the quotation
-                        $requestFileASSEMBLY = $quotationItem['assembly_file_location'];
-    
-                        // Delete the PDF file from the server
-                        $filePathASSEMBLY = FCPATH . $requestFileASSEMBLY;
-                        if (file_exists($filePathASSEMBLY)) {
-                            unlink($filePathASSEMBLY);
-                        }
-                    }
-                }
-    
-                // Delete the records from the database
-                $QuotationItemsModel->where('request_quotation_id', $id)->delete();
+        // Find and delete related quotation items
+        $quotationItems = $QuotationItemsModel->where('request_quotation_id', $id)->findAll();
+        if ($quotationItems) {
+            foreach ($quotationItems as $quotationItem) {
+                // Remove all related files similarly as above
+                $this->deleteFilesForQuotationItem($quotationItem);
             }
+            $QuotationItemsModel->where('request_quotation_id', $id)->delete();
+        }
     
-            $deleted = $RequestQuotationModel->delete($id);
-    
-            if ($deleted) {
-                return $this->response->setJSON(['status' => 'success']);
-            } else {
-                return $this->response->setJSON(['status' => 'error', 'message' => 'Failed to delete the request data quotation from the database']);
-            }
+        // Finally, delete the request quotation itself
+        $deleted = $RequestQuotationModel->delete($id);
+        if ($deleted) {
+            return $this->response->setJSON(['status' => 'success']);
+        } else {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Failed to delete the request data quotation from the database']);
         }
     
         return $this->response->setJSON(['status' => 'error', 'message' => 'Request quotation not found']);
     }
+    
+    // Helper method to delete files associated with a quotation item
+    private function deleteFilesForQuotationItem($quotationItem)
+    {
+        if (isset($quotationItem['file_location'])) {
+            $filePath = FCPATH . $quotationItem['file_location'];
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+        if (isset($quotationItem['stl_location'])) {
+            $filePathSTL = FCPATH . $quotationItem['stl_location'];
+            if (file_exists($filePathSTL)) {
+                unlink($filePathSTL);
+            }
+        }
+        if (isset($quotationItem['print_location'])) {
+            $filePathPRINT = FCPATH . $quotationItem['print_location'];
+            if (file_exists($filePathPRINT)) {
+                unlink($filePathPRINT);
+            }
+        }
+        if (isset($quotationItem['assembly_file_location'])) {
+            $filePathASSEMBLY = FCPATH . $quotationItem['assembly_file_location'];
+            if (file_exists($filePathASSEMBLY)) {
+                unlink($filePathASSEMBLY);
+            }
+        }
+    }    
 
     public function deleteItem($id)
     {
@@ -198,19 +201,25 @@ class RequestQuotationListController extends SessionController
         if ($request->isAJAX()) {
             // Assuming you have a model called QuotationListModel
             $quotationItemsModel = new QuotationItemsModel();
+            $assemblyPrintFilesModel = new AssemblyPrintFilesModel();
     
             // Fetch the quotation list data
-            $data = $quotationItemsModel
+            $quotationItems  = $quotationItemsModel
+            ->join('materials', 'materials.material_id=quotation_items.material_id', 'left')
             ->join('request_quotations', 'quotation_items.request_quotation_id=request_quotations.request_quotation_id', 'left')
             ->where('quotation_items.request_quotation_id', $id)
             ->findAll(); // Adjust this according to your actual query or method in the model
-    
+
+            $assemblyPrintFiles = $assemblyPrintFilesModel
+            ->where('request_quotation_id', $id)
+            ->findAll();
             // Check if data is fetched successfully
-            if ($data !== null) {
+            if ($quotationItems !== null) {
                 // Prepare the response
                 $response = [
                     'status' => 'success',
-                    'data' => $data,
+                    'data' => $quotationItems,
+                    'assemblyPrintFiles' => $assemblyPrintFiles,
                 ];
                 return $this->response->setJSON($response);
             } else {
@@ -312,7 +321,7 @@ class RequestQuotationListController extends SessionController
         $escapedFilePath = str_replace('\\', '\\\\', $filePath);
         $escapedOutputFile = str_replace('\\', '\\\\', $outputFile);
 
-        $command = "\"$freecadCmd\" -c \"import Part; doc = FreeCAD.newDocument(); obj = doc.addObject('Part::Feature'); obj.Shape = Part.read('$escapedFilePath'); doc.recompute(); Part.export([obj], '$escapedOutputFile');\"";
+        $command = "\"$freecadCmd\" -c \"import FreeCAD as App; import Part, MeshPart; doc = App.newDocument(); obj = doc.addObject('Part::Feature'); obj.Shape = Part.read('$escapedFilePath'); doc.recompute(); mesh_obj = MeshPart.meshFromShape(Shape=obj.Shape, LinearDeflection=0.1, AngularDeflection=0.5); mesh_obj.write('$escapedOutputFile');\"";
 
         $logger = \Config\Services::logger();
         $logger->info('Current PATH: ' . getenv('PATH'));
@@ -343,7 +352,7 @@ class RequestQuotationListController extends SessionController
         $quantities = $this->request->getPost('quantity');
         $printFiles = $this->request->getFiles('printFile');
         $assemblyFiles = $this->request->getFiles('assemblyFile');
-
+    
         // Check if data is received
         if (empty($printFiles) && empty($assemblyFiles)) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'No files uploaded.']);
@@ -351,20 +360,24 @@ class RequestQuotationListController extends SessionController
     
         $requestQuotation = $requestQuotationModel->find($requestQuotationId);
         $assemblyFileLists = $assemblyPrintFilesModel->findAll($requestQuotationId);
-
+    
         $assemblyFilePaths = [];
-
         $uploadPath2 = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'assembly-files' . DIRECTORY_SEPARATOR;
-        
-        if (is_array($assemblyFiles)) {
-            foreach($assemblyFileLists as $assemblyLists) {
-                if (!empty($assemblyLists['assembly_print_file_location']) && file_exists(FCPATH . $assemblyLists['assembly_print_file_location'])) {
-                    unlink(FCPATH . $assemblyLists['assembly_print_file_location']);
-                }
-            }
+    
+        // Only delete existing assembly files if new ones are being uploaded
+        if (is_array($assemblyFiles) && count($assemblyFiles) > 0) {
             foreach ($assemblyFiles as $fileArray) {
                 foreach ($fileArray as $assemblyFile) {
                     if ($assemblyFile->isValid() && !$assemblyFile->hasMoved()) {
+                        // Delete existing assembly files
+                        foreach($assemblyFileLists as $assemblyLists) {
+                            if (!empty($assemblyLists['assembly_print_file_location']) && file_exists(FCPATH . $assemblyLists['assembly_print_file_location'])) {
+                                unlink(FCPATH . $assemblyLists['assembly_print_file_location']);
+                            }
+                            $assemblyPrintFilesModel->delete($assemblyLists['assembly_print_file_id']);
+                        }
+                        
+                        // Upload new assembly files
                         $newFileName2 = $assemblyFile->getRandomName();
                         $originalName = $assemblyFile->getClientName();
                         if (!$assemblyFile->move($uploadPath2, $newFileName2)) {
@@ -378,13 +391,15 @@ class RequestQuotationListController extends SessionController
                     }
                 }
             }
-        }
-        foreach ($assemblyFilePaths as $fileData) {
-            $assemblyPrintFilesModel->insert([
-                'request_quotation_id' => $requestQuotationId,
-                'assembly_print_file_location' => $fileData['path'],
-                'filename' => $fileData['original_name'],
-            ]);
+    
+            // Save new assembly file paths to the database
+            foreach ($assemblyFilePaths as $fileData) {
+                $assemblyPrintFilesModel->insert([
+                    'request_quotation_id' => $requestQuotationId,
+                    'assembly_print_file_location' => $fileData['path'],
+                    'filename' => $fileData['original_name'],
+                ]);
+            }
         }
     
         $responses = [];
@@ -400,10 +415,9 @@ class RequestQuotationListController extends SessionController
             if (!$quotationItem) {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Quotation item not found.']);
             }
-
+    
             // Handle file upload if printFile is not empty
             if ($printFile && $printFile->isValid() && !$printFile->hasMoved()) {
-
                 if (!empty($quotationItem['print_location']) && file_exists(FCPATH . $quotationItem['print_location'])) {
                     unlink(FCPATH . $quotationItem['print_location']);
                 }
@@ -418,7 +432,7 @@ class RequestQuotationListController extends SessionController
                     'request_quotation_id' => $requestQuotationId,
                     'partnumber' => $partNumber,
                     'quotetype' => $quoteType,
-                    'material' => $material,
+                    'material_id' => $material,
                     'quantity' => $quantity,
                     'print_location' => 'uploads/print-files/' . $newFileName, // Assuming you have a field to store the filename
                     'print_location_original_name' => $originalFileName, // Assuming you have a field to store the filename
@@ -429,17 +443,18 @@ class RequestQuotationListController extends SessionController
                     'request_quotation_id' => $requestQuotationId,
                     'partnumber' => $partNumber,
                     'quotetype' => $quoteType,
-                    'material' => $material,
+                    'material_id' => $material,
                     'quantity' => $quantity,
                 ];
             }
             // Update the quotation item
             $quotationItemsModel->update($quotationItemId, $data);
+            $requestQuotationModel->update($requestQuotationId, ['status' => 'Pending']);
             $responses[] = [
                 'quotation_item_id' => $quotationItemId,
                 'partnumber' => $partNumber,
                 'quotetype' => $quoteType,
-                'material' => $material,
+                'material_id' => $material,
                 'quantity' => $quantity,
                 'printFile' => $printFile ? $printFile->getClientName() : null,
             ];
@@ -474,6 +489,7 @@ class RequestQuotationListController extends SessionController
         // Respond with the processed data or a success message
         return $this->response->setJSON(['status' => 'success', 'data' => $responses]);
     }
+    
     public function duplicateQuotation($id)
     {
         $quotationItemsModel = new QuotationItemsModel();
@@ -488,7 +504,7 @@ class RequestQuotationListController extends SessionController
         $data = [
             'reference' => $this->generateReference(),
             'user_id' => $user_id,
-            'status' => 'Pending',
+            'status' => 'Duplicate',
             'datesubmitted' => date('Y-m-d')
         ];
     
@@ -505,7 +521,8 @@ class RequestQuotationListController extends SessionController
                         // Insert only if the new file path is set
                         $data = [
                             'request_quotation_id' => $inserted,
-                            'assembly_print_file_location' => $newFileData['assembly_print_file_location']
+                            'assembly_print_file_location' => $newFileData['assembly_print_file_location'],
+                            'filename' => $files['filename']
                         ];
                         $assemblyPrintFilesModel->insert($data);
                     }
@@ -533,12 +550,12 @@ class RequestQuotationListController extends SessionController
                         'partnumber' => $item['partnumber'],
                         'quantity' => $item['quantity'],
                         'quotetype' => $item['quotetype'],
-                        'material' => $item['material'],
+                        'material_id' => $item['material_id'],
                         'filename' => $item['filename'],
                         'file_location' => $newFileData['file_location'] ?? null,
                         'stl_location' => $newFileData['stl_location'] ?? null,
                         'print_location' => $newFileData['print_location'] ?? null,
-                        'print_location' => $newFileData['print_location_original_name'] ?? null,
+                        'print_location_original_name' => $item['print_location_original_name'] ?? null,
                     ];
     
                     // Insert only if at least one file location is set
@@ -591,7 +608,8 @@ class RequestQuotationListController extends SessionController
         $assemblyPrintFilesModel = new AssemblyPrintFilesModel();
     
         $requestQuotation = $requestQuotationModel->find($id);
-        $quotationItems = $quotationItemsModel->where('request_quotation_id', $requestQuotation['request_quotation_id'])->findAll();
+        $quotationItems = $quotationItemsModel
+        ->where('request_quotation_id', $requestQuotation['request_quotation_id'])->findAll();
         $assemblyFiles = $assemblyPrintFilesModel->where('request_quotation_id', $requestQuotation['request_quotation_id'])->findAll();
     
         // Create a new ZipArchive instance

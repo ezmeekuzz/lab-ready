@@ -73,6 +73,7 @@ class SendQuotationController extends SessionController
             'productname' => $productName,
             'productprice' => $productPrice,
             'invoicefile' => '/uploads/PDFs/' . $newFileName,
+            'filename' => $invoiceFile->getClientName(),
             'quotationdate' => date('Y-m-d'),
             'status' => 'Unpaid'
         ];

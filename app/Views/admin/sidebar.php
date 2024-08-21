@@ -49,6 +49,17 @@
                     <li <?php if($currentpage == 'usermasterlist') { echo 'class="active"'; } ?>> <a href='/user-masterlist'>User Masterlist</a> </li>
                 </ul>
             </li>
+            <li class="nav-static-title">Materials</li>
+            <li <?php if($currentpage == 'addmaterial' || $currentpage == 'materialmasterlist') { echo 'class="active"'; } ?>>
+                <a class="has-arrow" href="javascript:void(0)" aria-expanded="false">
+                    <i class="nav-icon ti ti-file"></i>
+                    <span class="nav-title">Materials</span>
+                </a>
+                <ul aria-expanded="false">
+                    <li <?php if($currentpage == 'addmaterial') { echo 'class="active"'; } ?>> <a href='/add-material'>Add Material</a> </li>
+                    <li <?php if($currentpage == 'materialmasterlist') { echo 'class="active"'; } ?>> <a href='/material-masterlist'>Material Masterlist</a> </li>
+                </ul>
+            </li>
             <li class="nav-static-title">Logout</li>
             <li>
                 <a href="/admin/logout" aria-expanded="false">

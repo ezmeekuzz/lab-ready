@@ -6,9 +6,6 @@ $(document).ready(function() {
 
     const acceptedFileTypes = ['', 'step', 'iges', 'stl', 'igs', 'pdf', 'STEP', 'IGES', 'STL', 'IGS', 'PDF'];
 
-    const materials3DPrinting = ['', 'Nylon', 'ABS', 'PETG', 'Aluminum', 'Stainless Steel', 'Titanium'];
-    const materialsCNCMachine = ['', 'ABS', 'PA (Nylon)', 'Polycarbonate', 'PEEK', 'PEI (Ultem)', 'PMMA (Acrylic)', 'POM (Acetal/Delrin)', 'Aluminum', 'Stainless Steel', 'Titanium'];
-
     uploadArea.addEventListener('dragover', function(event) {
         event.preventDefault();
         uploadArea.classList.add('drag-over');
@@ -497,22 +494,36 @@ $(document).ready(function() {
 
     function updateMaterialOptions(quoteType, materialId) {
         const materialSelect = document.getElementById(materialId);
-        materialSelect.innerHTML = '';
-
-        let options = [];
-        if (quoteType === '3D Printing') {
-            options = materials3DPrinting;
-        } else if (quoteType === 'CNC Machine') {
-            options = materialsCNCMachine;
-        }
-
-        options.forEach((material) => {
-            const option = document.createElement('option');
-            option.value = material;
-            option.textContent = material;
-            materialSelect.appendChild(option);
-        });
-    }
+        materialSelect.innerHTML = ''; // Clear current options
+    
+        // Add a blank or empty option
+        const emptyOption = document.createElement('option');
+        emptyOption.value = ''; // Set the value to an empty string
+        emptyOption.textContent = ''; // Set the display text to be empty
+        emptyOption.disabled = true; // Disable the blank option
+        emptyOption.selected = true; // Make sure it's selected initially
+        materialSelect.appendChild(emptyOption); // Append the empty option first
+    
+        // Make an AJAX request to the server to fetch materials based on quoteType
+        fetch(`/requestquotation/getMaterials?quoteType=${encodeURIComponent(quoteType)}`)
+            .then(response => response.json())
+            .then(data => {
+                // Check if data is received and is an array
+                if (Array.isArray(data)) {
+                    data.forEach(material => {
+                        const option = document.createElement('option');
+                        option.value = material.material_id; // Assuming the data has a 'material_id' field for the value
+                        option.textContent = material.materialname; // Assuming the data has a 'materialname' field for the option text
+                        materialSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('Invalid data received from the server');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching materials:', error);
+            });
+    }    
 
     // Call the function when the page is ready or when needed
     getQuotationLists();

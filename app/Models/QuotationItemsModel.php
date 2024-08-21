@@ -13,7 +13,7 @@ class QuotationItemsModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'request_quotation_id', 'partnumber', 'quantity', 'quotetype', 'material', 'filename', 'filetype', 'file_location', 'stl_location', 'print_location', 'assembly_file_location', 'print_location_original_name'
+        'request_quotation_id', 'partnumber', 'quantity', 'quotetype', 'material_id', 'filename', 'filetype', 'file_location', 'stl_location', 'print_location', 'assembly_file_location', 'print_location_original_name'
     ];
 
     protected bool $allowEmptyInserts = false;

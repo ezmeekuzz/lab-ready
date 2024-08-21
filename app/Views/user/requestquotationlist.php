@@ -76,13 +76,14 @@
                         <div class="row">
                             <div class="col-lg-8">
                                 <div class="form-group">
-                                    <span class="text-danger">If fit, finish and assembly is required. Please assembly print here.</span>
+                                    <span class="text-danger">If assembly is required, please upload ALL assembly prints and models here.</span>
                                     <label for="assemblyFile">(Assembly Print File) Upload Multiple Files</label>
                                     <div class="custom-file">
-                                        <label class="custom-file-label" for="assemblyFile">Click BROWSE and select ALL Assembly file to Upload</label>
+                                        <label class="custom-file-label" id="assemblyFilesLabel" for="assemblyFile">Click BROWSE and select ALL Assembly file to Upload</label>
                                         <input type="file" class="custom-file-input" id="assemblyFile" name="assemblyFile[]" accept=".pdf, .stl, .step, .iges" multiple>
                                     </div>
                                 </div>
+                                <div id="assemblyFileNames"></div>
                             </div>
                         </div>
                     </div>
@@ -109,6 +110,6 @@
 </div>
 <?=$this->include('user/footer');?>
 <script>
-    baseURL = "<?=base_url();?>";
+    let baseURL = "<?=base_url();?>";
 </script>
 <script src="<?=base_url();?>assets/js/requestquotationlist.js"></script>

@@ -10,10 +10,10 @@ class HomeController extends BaseController
 {
     public function index()
     {
-        $redirectToQuotation = $this->request->getGet('redirect') == 'quote';
+        $redirectToQuotation = ($this->request->getGet('redirect') == 'quote') ? 'request-quotation' : 'quotations';
 
         if (session()->has('user_user_id') && session()->get('user_usertype') == 'Regular User') {
-            return redirect()->to('/request-quotation');
+            return redirect()->to('/' . $redirectToQuotation);
         }
 
         $data = [

@@ -89,12 +89,12 @@ class QuotationsController extends SessionController
             $message = view('emails/payment-success', $data);
             // Email sending code
             $pdfFilePath = FCPATH . $quotationDetails['invoicefile'];
+            $this->adminEmailReceived($data);
             $email = \Config\Services::email();
             $email->setTo($userDetails['email']);
-            $email->setCC('rustomcodilan@gmail.com');
             $email->setSubject('We\'ve got you\'re payment!');
             $email->setMessage($message);
-            $email->attach($pdfFilePath);
+            $email->attach($pdfFilePath, 'attachment', $quotationDetails['filename']);
             if ($email->send()) {
                 $response = [
                     'success' => true,
@@ -114,6 +114,16 @@ class QuotationsController extends SessionController
         }
     
         return $this->response->setJSON($response);
+    }
+    private function adminEmailReceived($data)
+    {
+        $message = "";
+        $message .= "An order has been paid with this Quotation Number : " . $data['requestQuotationDetails']['reference'];
+        $email = \Config\Services::email();
+        $email->setTo('rustomcodilan@gmail.com');
+        $email->setSubject('Quotation Payment');
+        $email->setMessage($message);
+        $email->send();
     }
     public function deleteQuotation($id)
     {
@@ -182,7 +192,9 @@ class QuotationsController extends SessionController
                 if ($tresponse != null && $tresponse->getMessages() != null) {
                     $quotationsModel = new QuotationsModel();
                     $requestQuotationsModel = new RequestQuotationsModel();
+                    $usersModel = new UsersModel();
                     $requestQuotationDetails = $requestQuotationsModel->where('request_quotation_id', $id)->find();
+                    $userDetails = $usersModel->find(session()->get('user_user_id'));
                     $updated = $quotationsModel->where('quotation_id', $quotationId)
                         ->set('address', $address)
                         ->set('city', $city)
@@ -198,8 +210,9 @@ class QuotationsController extends SessionController
                     $message = view('emails/payment-success', $data);
                     // Email sending code
                     $pdfFilePath = FCPATH . $quotationDetails['invoicefile'];
+                    $this->adminEmailReceived($data);
                     $email = \Config\Services::email();
-                    $email->setTo('rustomcodilan@gmail.com');
+                    $email->setTo($userDetails['email']);
                     $email->setSubject('We\'ve got you\'re payment!');
                     $email->setMessage($message);
                     $email->attach($pdfFilePath);

@@ -29,6 +29,7 @@ class RequestQuotationListController extends SessionController
             ->select('request_quotations.*, users.*, request_quotations.user_id as uid')
             ->join('users', 'request_quotations.user_id = users.user_id', 'LEFT JOIN')
             ->where('request_quotations.status !=', 'Ongoing')
+            ->where('request_quotations.status !=', 'Duplicate')
             ->make();
     }
     public function updateStatus($id)
@@ -91,6 +92,7 @@ class RequestQuotationListController extends SessionController
             'productname' => $productName,
             'productprice' => $productPrice,
             'invoicefile' => '/uploads/PDFs/' . $newFileName,
+            'filename' => $invoiceFile->getClientName(),
             'quotationdate' => date('Y-m-d'),
             'status' => 'Unpaid'
         ];
@@ -156,6 +158,7 @@ class RequestQuotationListController extends SessionController
         $quotationItems = $quotationItemsModel
             ->join('request_quotations', 'request_quotations.request_quotation_id=quotation_items.request_quotation_id', 'left')
             ->join('users', 'request_quotations.user_id=users.user_id', 'left')
+            ->join('materials', 'materials.material_id=quotation_items.material_id', 'left')
             ->where('quotation_items.request_quotation_id', $id)
             ->findAll();
         $assemblyFiles = $assemblyPrintFilesModel->where('request_quotation_id', $requestQuotation['request_quotation_id'])->findAll();
@@ -332,10 +335,10 @@ class RequestQuotationListController extends SessionController
         }
         
         $row = 7;
-        foreach ($quotationItems as $item) {
-            $sheet->setCellValue('A' . $row, $item['request_quotation_id']); // Assuming item number is stored in 'item_no'
+        foreach ($quotationItems as $index => $item) {
+            $sheet->setCellValue('A' . $row, $index+1); // Assuming item number is stored in 'item_no'
             $sheet->setCellValue('B' . $row, $item['partnumber']); // Assuming part number is stored in 'part_number'
-            $sheet->setCellValue('C' . $row, $item['material']); // Assuming material is stored in 'material'
+            $sheet->setCellValue('C' . $row, $item['materialname']); // Assuming material is stored in 'material'
             $sheet->setCellValue('D' . $row, '(anodizing, etc)'); // Assuming special surface treatment is stored in 'special_surface_treatment'
             $sheet->setCellValue('E' . $row, $item['quotetype']); // Assuming method is stored in 'method'
             $sheet->setCellValue('F' . $row, ($item['print_location']) ? 'Yes' : 'No'); // Assuming print uploaded is stored in 'print_uploaded'
@@ -547,7 +550,7 @@ class RequestQuotationListController extends SessionController
         $row = 2;
         foreach($quotationItems as $items) {
             $newSheet->setCellValue('A' . $row, ($items['print_location']) ? 'Y' : 'N');
-            $newSheet->setCellValue('B' . $row, $items['print_location_original_name']);
+            $newSheet->setCellValue('B' . $row, $items['partnumber']);
             $newSheet->setCellValue('C' . $row, '');
             $newSheet->setCellValue('D' . $row, '');
             $newSheet->setCellValue('E' . $row, '');

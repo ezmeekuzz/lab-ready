@@ -7,6 +7,7 @@ use CodeIgniter\Files\File;
 use App\Models\RequestQuotationModel;
 use App\Models\QuotationItemsModel;
 use App\Models\AssemblyPrintFilesModel;
+use App\Models\MaterialsModel;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\HTTP\Response;
 use CodeIgniter\API\ResponseTrait;
@@ -131,36 +132,37 @@ class RequestQuotationController extends SessionController
     {
         $outputPath = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'quotation-files';
         $outputFile = $outputPath . DIRECTORY_SEPARATOR . bin2hex(random_bytes(8)) . '.stl';
-        $freecadCmd = 'C:\\Program Files\\FreeCAD 0.21\\bin\\FreeCADCmd.exe'; // Use full path for now
+        $freecadCmd = 'C:\\Program Files\\FreeCAD 0.21\\bin\\FreeCADCmd.exe'; 
     
         // Ensure the FreeCADCmd.exe is available
         if (!file_exists($freecadCmd)) {
             throw new \RuntimeException("FreeCADCmd.exe not found at $freecadCmd");
         }
     
-        // Use double backslashes to avoid Unicode decoding errors
+        // Escaping file paths for Windows command line
         $escapedFilePath = str_replace('\\', '\\\\', $filePath);
         $escapedOutputFile = str_replace('\\', '\\\\', $outputFile);
     
-        $command = "\"$freecadCmd\" -c \"import Part; doc = FreeCAD.newDocument(); obj = doc.addObject('Part::Feature'); obj.Shape = Part.read('$escapedFilePath'); doc.recompute(); Part.export([obj], '$escapedOutputFile');\"";
+        $command = "\"$freecadCmd\" -c \"import FreeCAD as App; import Part, MeshPart; doc = App.newDocument(); obj = doc.addObject('Part::Feature'); obj.Shape = Part.read('$escapedFilePath'); doc.recompute(); mesh_obj = MeshPart.meshFromShape(Shape=obj.Shape, LinearDeflection=0.1, AngularDeflection=0.5); mesh_obj.write('$escapedOutputFile');\"";
     
         // Log the command
         $logger = \Config\Services::logger();
-        $logger->info('Current PATH: ' . getenv('PATH'));
         $logger->info('Executing FreeCAD command: ' . $command);
     
+        // Execute the command
         $output = shell_exec($command . ' 2>&1');
     
-        // Log the command output
+        // Log the output of the command
         $logger->info('FreeCAD command output: ' . $output);
     
+        // Check if the output file was created
         if (!file_exists($outputFile)) {
             $logger->error('FreeCAD conversion failed: ' . $output);
             throw new \RuntimeException("Failed to convert the file. Command output: " . $output);
         }
     
         return $outputFile;
-    }
+    }    
 
     public function quotationLists()
     {
@@ -174,27 +176,19 @@ class RequestQuotationController extends SessionController
 
         return $this->response->setJSON($quotationList);
     }
-    public function recentQuotationLists()
+    public function getMaterials()
     {
-        $quotationItemModel = new QuotationItemsModel();
-    
-        // Get the recent quotation_item_ids from the session
-        $recentQuotationItemIds = session()->get('recent_quotation_item_ids');
-    
-        if (empty($recentQuotationItemIds)) {
-            return $this->response->setJSON(['error' => 'No recent quotations found.']);
-        }
-    
-        // Fetch the quotation items for the recent quotation_item_ids
-        $quotationList = $quotationItemModel
-            ->join('request_quotations', 'request_quotations.request_quotation_id=quotation_items.request_quotation_id', 'left')
-            ->where('request_quotations.user_id', session()->get('user_user_id'))
-            ->whereIn('quotation_items.quotation_item_id', $recentQuotationItemIds)
-            ->findAll();
-    
-        return $this->response->setJSON($quotationList);
-    }
+        // Load the necessary model
+        $materialModel = new MaterialsModel();
 
+        // Get the quoteType from the request
+        $quoteType = $this->request->getVar('quoteType');
+        
+        $materials = $materialModel->where('quotetype', $quoteType)->findAll();
+
+        // Return the materials as a JSON response
+        return $this->response->setJSON($materials);
+    }
     public function submitQuotations()
     {
         $quotationItemsModel = new QuotationItemsModel();
@@ -302,7 +296,7 @@ class RequestQuotationController extends SessionController
                         'partnumber' => $partNumber,
                         'quantity' => $quantity,
                         'quotetype' => $quotetype,
-                        'material' => $material,
+                        'material_id' => $material,
                         'print_location' => $printFilePath,
                         'print_location_original_name' => $originalFileName,
                     ]);

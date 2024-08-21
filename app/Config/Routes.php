@@ -37,6 +37,15 @@ $routes->delete('/subscribersmasterlist/delete/(:num)', 'Admin\SubscribersMaster
 $routes->get('/send-newsletter', 'Admin\SendNewsletterController::index');
 $routes->post('/sendnewsletter/sendMessage', 'Admin\SendNewsletterController::sendMessage');
 $routes->get('/download-files/(:num)', 'Admin\RequestQuotationListController::downloadFiles/$1');
+$routes->get('/add-material', 'Admin\AddMaterialController::index');
+$routes->post('/addmaterial/insert', 'Admin\AddMaterialController::insert');
+$routes->get('/material-masterlist', 'Admin\MaterialMasterlistController::index');
+$routes->post('/materialmasterlist/getData', 'Admin\MaterialMasterlistController::getData');
+$routes->delete('/materialmasterlist/delete/(:num)', 'Admin\MaterialMasterlistController::delete/$1');
+$routes->get('/edit-material/(:num)', 'Admin\EditMaterialController::index/$1');
+$routes->post('/editmaterial/update', 'Admin\EditMaterialController::update');
+$routes->post('/materialmasterlist/getListByQuoteType', 'Admin\MaterialMasterlistController::getListByQuoteType');
+$routes->post('/materialmasterlist/updateOrder', 'Admin\MaterialMasterlistController::updateOrder');
 /*Admin*/
 
 /*User*/
@@ -66,6 +75,7 @@ $routes->get('/requestquotationlist/getQuotationList/(:num)', 'User\RequestQuota
 $routes->post('/requestquotationlist/duplicateQuotation/(:num)', 'User\RequestQuotationListController::duplicateQuotation/$1');
 $routes->get('/requestquotationlist/download-files/(:num)', 'User\RequestQuotationListController::downloadAllFiles/$1');
 $routes->get('/requestquotationlist/downloadAssemblyFiles/(:num)', 'User\RequestQuotationListController::downloadAssemblyFiles/$1');
+$routes->get('/requestquotation/getMaterials', 'User\RequestQuotationController::getMaterials');
 /*User*/
 
 $routes->get('/', 'HomeController::index');

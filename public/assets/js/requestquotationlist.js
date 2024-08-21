@@ -1,8 +1,4 @@
 $(document).ready(function () {
-
-    const materials3DPrinting = ['', 'Nylon', 'ABS', 'PETG', 'Aluminum', 'Stainless Steel', 'Titanium'];
-    const materialsCNCMachine = ['', 'ABS', 'PA (Nylon)', 'Polycarbonate', 'PEEK', 'PEI (Ultem)', 'PMMA (Acrylic)', 'POM (Acetal/Delrin)', 'Aluminum', 'Stainless Steel', 'Titanium'];
-
     const acceptedFileTypes = ['step', 'iges', 'stl', 'igs', 'pdf', 'STEP', 'IGES', 'STL', 'IGS', 'PDF'];
     
     const uploadArea = document.getElementById('uploadArea');
@@ -225,6 +221,9 @@ $(document).ready(function () {
                     } else if (data === 'Done') {
                         statusClass = 'badge-success p-1 rounded';
                     }
+                    else {
+                        statusClass = 'badge-info p-1 rounded';
+                    }
                     return `<span class="${statusClass}">${data}</span>`;
                 }
             },
@@ -278,21 +277,75 @@ $(document).ready(function () {
     }
 
     function getMaterialsHtml(quoteType, selectedMaterial) {
-        let materials = quoteType === '3D Printing' ? materials3DPrinting : materialsCNCMachine;
-        let options = materials.map(material => {
-            let selected = material === selectedMaterial ? 'selected' : '';
-            return `<option value="${material}" ${selected}>${material}</option>`;
+        let options = '<option value="" disabled selected>Select a material</option>';
+        
+        $.ajax({
+            url: '/requestquotation/getMaterials?quoteType=' + quoteType,  // Change this to the actual URL that will handle the request
+            method: 'GET',
+            async: false,  // Set to false to wait for the AJAX call to complete before returning options
+            success: function(response) {
+                // Assuming the response is an array of objects with properties like { id: 1, name: 'Material Name' }
+                let materialOptions = response.map(material => {
+                    let selected = material.material_id === selectedMaterial ? 'selected' : '';
+                    return `<option value="${material.material_id}" ${selected}>${material.materialname}</option>`;
+                });
+                options += materialOptions.join('');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching materials:', error);
+                // Optionally handle the error, e.g., show an alert to the user
+            }
         });
-        return options.join('');
+    
+        return options;
     }
 
     $(document).on('click', '.quotation-list', function (e) {
         e.preventDefault();
-
+    
         let requestQuotationId = $(this).data('id');
         let status = $(this).data('status');
-        quotationItems(requestQuotationId, status);
+    
+        // Set the values in the hidden fields
+        $('#request_quotation_id').val(requestQuotationId);
+        $('#status').val(status);
+    
+        // Check if the script is already loaded to avoid multiple loading
+        if (!$('script[src="' + baseURL + 'assets/stl_viewer/stl_viewer.min.js"]').length) {
+            // Create a new script element
+            let script = document.createElement('script');
+            script.src = baseURL + 'assets/stl_viewer/stl_viewer.min.js';
+            script.id = "stl-viewer-script"; // Assign an ID to easily find and remove it later
+    
+            // Append the script to the body or head
+            document.body.appendChild(script);
+    
+            // Handle the script's load event
+            script.onload = function() {
+                console.log('STL Viewer script loaded successfully.');
+                quotationItems(requestQuotationId, status);
+            };
+    
+            // Handle the script's error event
+            script.onerror = function() {
+                console.error('Failed to load STL Viewer script.');
+            };
+        } else {
+            // If the script is already loaded, just proceed with the function call
+            quotationItems(requestQuotationId, status);
+        }
+    
+        // Show the modal after loading the script
+        $('#quotationListModal').modal('show');
     });
+    
+    // Remove the script when the modal is closed
+    $(document).on('hidden.bs.modal', '#quotationListModal', function () {
+        // Remove the script element
+        $('#stl-viewer-script').remove();
+        console.log('STL Viewer script removed.');
+    });
+    
 
     function quotationItems(requestQuotationId, status) {
 
@@ -300,6 +353,25 @@ $(document).ready(function () {
             url: '/requestquotationlist/getQuotationList/' + requestQuotationId,
             method: 'GET',
             success: function (response) {
+                console.log(response);
+                console.log(response.assemblyPrintFiles.length);
+                if(response.assemblyPrintFiles.length > 1) {
+                    $('#assemblyFilesLabel').html(response.assemblyPrintFiles.length + ' Files');
+                    response.assemblyPrintFiles.forEach(item => {
+                        $('#assemblyFileNames').html('');
+
+                        // Loop through each file in the response.assemblyPrintFiles array
+                        response.assemblyPrintFiles.forEach(function(file) {
+                            // Append each file name to the #assemblyFileNames div
+                            $('#assemblyFileNames').append('<div class="label label-info">' + file.filename + '</div><br/>');
+                        });
+                    });
+                }
+                else if(response.assemblyPrintFiles.length === 1) {
+                    response.assemblyPrintFiles.forEach(item => {
+                        $('#assemblyFilesLabel').html(item.filename);
+                    });
+                }
                 if (response.status === 'success') {
                     $('#quotationContainer').empty();
                     $('#request_quotation_id').val(requestQuotationId);
@@ -311,6 +383,7 @@ $(document).ready(function () {
                         let materialId = 'material_' + item.quotation_item_id;
                         let quantityId = 'quantity_' + item.quotation_item_id;
                         let printFileId = 'printFile_' + item.quotation_item_id;
+                        let printFileLabelId = 'printFileLabel_' + item.quotation_item_id;
                         let increaseId = 'increase_' + item.quotation_item_id;
                         let decreaseId = 'decrease_' + item.quotation_item_id;
                         let downloadBTN = "";
@@ -318,8 +391,8 @@ $(document).ready(function () {
                             downloadBTN = `<a href="${item.print_location}" download class="btn bg-dark text-white mb-2"><i class="fa fa-download"></i> Download Print File</a>`;
                         }
                         let itemHtml = "";
-                        let materialsOptions = getMaterialsHtml(item.quotetype, item.material);
-                        if (status != 'Pending') {
+                        let materialsOptions = getMaterialsHtml(item.quotetype, item.material_id);
+                        if (status != 'Pending' && status != 'Duplicate') {
                             $('#DropFiles').css('display', 'none');
                             $('#AssemblyPrintFile').css('display', 'none');
                             $('#downloadAssemblyFiles').css('display', 'block');
@@ -394,7 +467,7 @@ $(document).ready(function () {
                                                     <div class="form-group">
                                                         <label for="${printFileId}">Print File</label>
                                                         <div class="custom-file">
-                                                            <label class="custom-file-label" for="${printFileId}">Choose file</label>
+                                                            <label class="custom-file-label" id="${printFileLabelId}" for="${printFileId}">${item.print_location_original_name}</label>
                                                             <input type="file" class="custom-file-input" id="${printFileId}" name="printFile[]" accept="application/pdf">
                                                         </div>
                                                     </div>
@@ -419,6 +492,9 @@ $(document).ready(function () {
                         $('#quotationContainer').append(itemHtml);
 
                         const stlContainer = document.getElementById(stlContId);
+                        console.log('Item:', item);
+                        console.log('STL Location:', item.stl_location);
+                        console.log('Container ID:', stlContId);
                         if (stlContainer) {
                             if (item.filetype == 'SLDPRT') {
                                 stlContainer.innerHTML = '<img src="' + baseURL + 'assets/img/SLDPRT-icon.png" alt="SLDPRT Icon" class="file-icon">';
@@ -478,13 +554,26 @@ $(document).ready(function () {
     $(document).on('change', 'select[id^="quotetype_"]', function() {
         let selectedQuoteType = $(this).val();
         let materialSelect = $(this).closest('.row').find('select[id^="material_"]');
-        let materials = selectedQuoteType === '3D Printing' ? materials3DPrinting : materialsCNCMachine;
-
-        materialSelect.empty();
-        materials.forEach(function(material) {
-            materialSelect.append(`<option value="${material}">${material}</option>`);
+        
+        // Clear the material select options and add a disabled default option
+        materialSelect.empty().append('<option value="" disabled selected>Select a material</option>');
+    
+        // Make an AJAX call to fetch materials based on the selected quote type
+        $.ajax({
+            url: '/requestquotation/getMaterials?quoteType=' + selectedQuoteType,  // Change this to the actual URL that will handle the request
+            method: 'GET',
+            success: function(response) {
+                // Assuming the response is an array of objects with properties like { id: 1, name: 'Material Name' }
+                response.forEach(function(material) {
+                    materialSelect.append(`<option value="${material.material_id}">${material.materialname}</option>`);
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching materials:', error);
+                // Optionally handle the error, e.g., show an alert to the user
+            }
         });
-    });
+    });    
 
     $(document).on('click', '.delete-request', function (e) {
         e.preventDefault();

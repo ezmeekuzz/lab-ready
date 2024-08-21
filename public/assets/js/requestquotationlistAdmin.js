@@ -23,6 +23,9 @@ $(document).ready(function () {
                     } else if (data === 'Done') {
                         statusClass = 'badge badge-success';
                     }
+                    else {
+                        statusClass = 'badge-info p-1 rounded';
+                    }
                     return `<span class="${statusClass}">${data}</span>`;
                 }
             },
