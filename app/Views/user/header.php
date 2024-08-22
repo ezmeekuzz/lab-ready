@@ -114,6 +114,57 @@
                 max-width: 60%;
             }
         }
+        .assembly-file-item {
+            position: relative;
+            padding-right: 40px; /* Adjust padding to accommodate the button */
+        }
+
+        .delete-file-btn {
+            display: none;
+            position: absolute;
+            top: 50%;
+            right: 10px; /* Adjust right to position the button correctly */
+            transform: translateY(-30%);
+            width: 24px; /* Set width to make the button larger */
+            height: 24px; /* Set height to match width */
+            font-size: 14px; /* Increase font size for better visibility */
+            line-height: 24px; /* Match line-height with height for vertical centering */
+            text-align: center;
+            border-radius: 50%;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .assembly-file-item:hover .delete-file-btn {
+            display: inline-flex; /* Use inline-flex for better alignment */
+            align-items: center; /* Align the icon vertically */
+            justify-content: center; /* Align the icon horizontally */
+        }
+        .delete-file-btn-unsave {
+            display: none;
+            position: absolute;
+            top: 50%;
+            right: 10px; /* Adjust right to position the button correctly */
+            transform: translateY(-30%);
+            width: 24px; /* Set width to make the button larger */
+            height: 24px; /* Set height to match width */
+            font-size: 14px; /* Increase font size for better visibility */
+            line-height: 24px; /* Match line-height with height for vertical centering */
+            text-align: center;
+            border-radius: 50%;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .assembly-file-item:hover .delete-file-btn-unsave {
+            display: inline-flex; /* Use inline-flex for better alignment */
+            align-items: center; /* Align the icon vertically */
+            justify-content: center; /* Align the icon horizontally */
+        }
     </style>
 </head>
 

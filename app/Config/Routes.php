@@ -76,6 +76,7 @@ $routes->post('/requestquotationlist/duplicateQuotation/(:num)', 'User\RequestQu
 $routes->get('/requestquotationlist/download-files/(:num)', 'User\RequestQuotationListController::downloadAllFiles/$1');
 $routes->get('/requestquotationlist/downloadAssemblyFiles/(:num)', 'User\RequestQuotationListController::downloadAssemblyFiles/$1');
 $routes->get('/requestquotation/getMaterials', 'User\RequestQuotationController::getMaterials');
+$routes->post('/requestquotationlist/deleteAssemblyFile', 'User\RequestQuotationListController::deleteAssemblyFile');
 /*User*/
 
 $routes->get('/', 'HomeController::index');

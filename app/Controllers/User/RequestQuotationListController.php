@@ -369,14 +369,6 @@ class RequestQuotationListController extends SessionController
             foreach ($assemblyFiles as $fileArray) {
                 foreach ($fileArray as $assemblyFile) {
                     if ($assemblyFile->isValid() && !$assemblyFile->hasMoved()) {
-                        // Delete existing assembly files
-                        foreach($assemblyFileLists as $assemblyLists) {
-                            if (!empty($assemblyLists['assembly_print_file_location']) && file_exists(FCPATH . $assemblyLists['assembly_print_file_location'])) {
-                                unlink(FCPATH . $assemblyLists['assembly_print_file_location']);
-                            }
-                            $assemblyPrintFilesModel->delete($assemblyLists['assembly_print_file_id']);
-                        }
-                        
                         // Upload new assembly files
                         $newFileName2 = $assemblyFile->getRandomName();
                         $originalName = $assemblyFile->getClientName();
@@ -695,4 +687,41 @@ class RequestQuotationListController extends SessionController
             return $this->response->setJSON(['success' => false, 'message' => 'Failed to create zip file.']);
         }
     }
+    public function deleteAssemblyFile()
+    {
+        $assemblyPrintFilesModel = new AssemblyPrintFilesModel();
+        $fileId = $this->request->getPost('id');
+    
+        // Fetch the file details from the database using the file ID
+        $file = $assemblyPrintFilesModel->find($fileId);
+    
+        if ($file) {
+            // Get the file path from the fetched file details
+            $filePath = FCPATH . $file['assembly_print_file_location']; // Adjust the path as needed
+    
+            // Check if the file exists on the server
+            if (file_exists($filePath)) {
+                // Attempt to delete the file from the server
+                if (unlink($filePath)) {
+                    // File deleted successfully, now delete the record from the database
+                    $deleted = $assemblyPrintFilesModel->delete($fileId);
+    
+                    if ($deleted) {
+                        return $this->response->setJSON(['success' => true]);
+                    } else {
+                        return $this->response->setJSON(['success' => false, 'message' => 'Failed to delete file from database']);
+                    }
+                } else {
+                    // File deletion failed
+                    return $this->response->setJSON(['success' => false, 'message' => 'Failed to delete file from server']);
+                }
+            } else {
+                // File does not exist
+                return $this->response->setJSON(['success' => false, 'message' => 'File does not exist on server']);
+            }
+        } else {
+            // File not found in the database
+            return $this->response->setJSON(['success' => false, 'message' => 'File not found in database']);
+        }
+    }    
 }

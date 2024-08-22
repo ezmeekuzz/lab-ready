@@ -42,10 +42,11 @@
                                                     <span class="text-danger">If assembly is required, please upload ALL assembly prints and models here.</span>
                                                     <label for="assemblyFile">(Assembly Print File) Upload Multiple Files</label>
                                                     <div class="custom-file">
-                                                        <label class="custom-file-label" for="assemblyFile">Click BROWSE and select ALL Assembly file to Upload</label>
+                                                        <label class="custom-file-label" id="assemblyFilesLabel" for="assemblyFile">Click BROWSE and select ALL Assembly file to Upload</label>
                                                         <input type="file" class="custom-file-input" id="assemblyFile" name="assemblyFile[]" multiple>
                                                     </div>
                                                 </div>
+                                                <div id="assemblyFileNames"></div>
                                             </div>
                                         </div>
                                     </div>

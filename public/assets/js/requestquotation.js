@@ -3,6 +3,9 @@ $(document).ready(function() {
     const fileInput = document.getElementById('fileInput');
     const fileSelectBtn = document.getElementById('fileSelectBtn');
     const fileList = document.getElementById('fileList');
+    const assemblyFileInput = document.getElementById('assemblyFile');
+    const assemblyFileNames = document.getElementById('assemblyFileNames');
+    let selectedFiles = []; // Store selected files in this array
 
     const acceptedFileTypes = ['', 'step', 'iges', 'stl', 'igs', 'pdf', 'STEP', 'IGES', 'STL', 'IGS', 'PDF'];
 
@@ -570,5 +573,63 @@ $(document).ready(function() {
                 });
             }
         });
+    });
+    
+    // Handle file selection
+    assemblyFileInput.addEventListener('change', function(event) {
+        const files = event.target.files;
+    
+        // Loop through selected files and display them
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileId = Date.now() + i; // Generate a unique ID for the file
+    
+            // Add file to the selectedFiles array
+            selectedFiles.push({
+                id: fileId,
+                file: file
+            });
+    
+            // Create HTML for the selected file
+            const assemblyFileHtml = `
+                <div class="label label-info assembly-file-item position-relative d-inline-block" style="padding-right: 25px;">
+                    ${file.name}
+                    <button type="button" data-id="${fileId}" class="delete-file-btn-unsave btn btn-danger btn-sm position-absolute rounded-circle" style="top: -5px; right: -5px;">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div><br/>
+            `;
+    
+            // Append the file HTML to the assemblyFileNames div
+            assemblyFileNames.insertAdjacentHTML('beforeend', assemblyFileHtml);
+        }
+    
+        // Clear the input value to allow selecting the same file again if needed
+        assemblyFileInput.value = '';
+    });
+    
+    // Handle file deletion
+    $(document).on('click', '.delete-file-btn-unsave', function() {
+        var button = $(this); // Reference to the clicked delete button
+        var fileId = button.data('id'); // Get the file ID from the data-id attribute
+    
+        // Remove the file item from the display
+        var fileItem = button.closest('.assembly-file-item');
+        fileItem.next('br').remove(); // Remove the <br> that comes after the file item
+        fileItem.remove(); // Remove the file item itself
+    
+        // Remove the file from the selectedFiles array
+        selectedFiles = selectedFiles.filter(fileObj => fileObj.id !== fileId);
+    
+        // Create a new DataTransfer object to update the files input
+        const dataTransfer = new DataTransfer();
+    
+        // Add the remaining files to the DataTransfer object
+        selectedFiles.forEach(fileObj => {
+            dataTransfer.items.add(fileObj.file);
+        });
+    
+        // Update the input files property with the updated DataTransfer files
+        assemblyFileInput.files = dataTransfer.files;
     });
 });
