@@ -137,7 +137,7 @@
             <div class="content">
                 <div class="con-text email-content">
                     <h3>Dear Client,</h3>
-                    <p>Thank you for requesting a quote from www.lab-ready.com. We are glad to inform you that your quotation is now ready and can be viewed by logging into your dashboard. These are your login details:</p>
+                    <p>Thank you for requesting a quote from www.lab-ready.com. We are glad to inform you that your quotes is now ready and can be viewed by logging into your dashboard. These are your login details:</p>
                 </div>
                 <div class="con-text initail">
                     <h4>Sincerely,</h4>

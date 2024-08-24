@@ -7,7 +7,7 @@
                 <div class="col-md-12 m-b-30">
                     <div class="d-block d-sm-flex flex-nowrap align-items-center">
                         <div class="page-title mb-2 mb-sm-0">
-                            <h4><i class="fa fa-file-pdf-o"></i> Request Quotation</h4>
+                            <h4><i class="fa fa-file-pdf-o"></i> Request New Quote</h4>
                         </div>
                         <div class="ml-auto d-flex align-items-center">
                             <nav>
@@ -16,7 +16,7 @@
                                         <a href="/"><i class="ti ti-home"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        Request Quotation
+                                        Request New Quote
                                     </li>
                                 </ol>
                             </nav>
@@ -29,7 +29,7 @@
                     <div class="card card-statistics">
                         <div class="card-header">
                             <div class="card-heading">
-                                <h4 class="card-title"><i class="fa fa-file-pdf-o"></i> Request Quotation</h4>
+                                <!--<h4 class="card-title"><i class="fa fa-file-pdf-o"></i> Request New Quote</h4>-->
                             </div>
                         </div>
                         <div class="card-body">

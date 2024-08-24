@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Controllers\Admin\SessionController;
 use CodeIgniter\HTTP\ResponseInterface;
 use App\Models\QuotationsModel;
+use App\Models\RequestQuotationModel;
 use App\Models\UserQuotationsModel;
 use App\Models\ShipmentsModel;
 
@@ -81,6 +82,7 @@ class QuotationMasterlistController extends SessionController
     {
         $shipmentsModel = new ShipmentsModel();
         $quotationsModel = new QuotationsModel();
+        $requestQuotationsModel = new RequestQuotationModel();
 
         $data = $this->request->getPost();
         $validation = \Config\Services::validation();
@@ -105,11 +107,18 @@ class QuotationMasterlistController extends SessionController
         ];
 
         $existingShipment = $shipmentsModel->where('quotation_id', $id)->first();
+        $quotationDetails = $quotationsModel->find($id);
 
         if ($existingShipment) {
             $update = $shipmentsModel->update($existingShipment['shipment_id'], $shipmentData);
+            $requestQuotationsModel
+            ->where('request_quotation_id', $quotationDetails['request_quotation_id'])
+            ->set('status', 'Shipped')->update();
         } else {
             $update = $shipmentsModel->insert($shipmentData);
+            $requestQuotationsModel
+            ->where('request_quotation_id', $quotationDetails['request_quotation_id'])
+            ->set('status', 'Shipped')->update();
         }
 
         if ($update) {

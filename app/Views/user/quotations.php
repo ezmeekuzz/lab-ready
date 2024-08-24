@@ -7,7 +7,7 @@
                 <div class="col-md-12 m-b-30">
                     <div class="d-block d-sm-flex flex-nowrap align-items-center">
                         <div class="page-title mb-2 mb-sm-0">
-                            <h4><i class="fa fa-file-text-o"></i> Quotations</h4>
+                            <h4><i class="fa fa-file-text-o"></i> Quotes</h4>
                         </div>
                         <div class="ml-auto d-flex align-items-center">
                             <nav>
@@ -16,7 +16,7 @@
                                         <a href="/"><i class="ti ti-home"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        Quotations
+                                        Quotes
                                     </li>
                                 </ol>
                             </nav>
@@ -28,7 +28,7 @@
                 <div class="col-lg-12 d-flex justify-content-end">
                     <div class="col-lg-4 p-0">
                         <div class="search-box">
-                            <input type="text" id="searchBox" class="form-control" placeholder="Search Quotations">
+                            <input type="text" id="searchBox" class="form-control" placeholder="Search Quotes">
                         </div>
                     </div>
                 </div>

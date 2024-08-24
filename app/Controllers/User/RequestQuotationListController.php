@@ -10,6 +10,7 @@ use App\Models\QuotationItemsModel;
 use App\Models\AssemblyPrintFilesModel;
 use App\Models\UserQuotationsModel;
 use App\Models\QuotationsModel;
+use App\Models\ShipmentsModel;
 use ZipArchive;
 
 class RequestQuotationListController extends SessionController
@@ -724,4 +725,19 @@ class RequestQuotationListController extends SessionController
             return $this->response->setJSON(['success' => false, 'message' => 'File not found in database']);
         }
     }    
+    public function shipmentLink($id)
+    {
+        $QuotationsModel = new QuotationsModel();
+        $shipmentsModel = new ShipmentsModel();
+
+        $quotations = $QuotationsModel->where('request_quotation_id', $id)->first();
+        $shipments = $shipmentsModel->where('quotation_id', $quotations['quotation_id'])->first();
+        if ($shipments) {
+            $shipmentLink = $shipments['shipment_link'];
+            return redirect()->to("{$shipmentLink}");
+        }
+    
+        // If no shipment found, you could redirect to an error page or back to the previous page
+        return redirect()->to('/requestquotationlist')->with('error', 'Shipment not found.');
+    }
 }

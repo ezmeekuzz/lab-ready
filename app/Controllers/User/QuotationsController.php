@@ -78,6 +78,10 @@ class QuotationsController extends SessionController
         ->update();
 
         $quotationDetails = $quotationsModel->find($quotationId);
+
+        $requestQuotationModel->where('request_quotation_id', $quotationDetails['request_quotation_id'])
+        ->set('status', 'Paid')
+        ->update();
     
         if ($updated) {
             $userDetails = $usersModel->find(session()->get('user_user_id'));
@@ -203,10 +207,16 @@ class QuotationsController extends SessionController
                         ->set('phonenumber', $phoneNumber)
                         ->set('status', 'Paid')
                         ->update();
+
                     $data = [
                         'requestQuotationDetails' => $requestQuotationDetails
                     ];
                     $quotationDetails = $quotationsModel->find($quotationId);
+                        
+                    $requestQuotationsModel->where('request_quotation_id', $quotationDetails['request_quotation_id'])
+                    ->set('status', 'Paid')
+                    ->update();
+
                     $message = view('emails/payment-success', $data);
                     // Email sending code
                     $pdfFilePath = FCPATH . $quotationDetails['invoicefile'];

@@ -217,17 +217,29 @@ $(document).ready(function () {
             { "data": "reference" },
             {
                 "data": "status",
-                "render": function (data) {
+                "render": function (data, type, row) {
                     let statusClass = '';
+                    let stat = '';
+                    let link = ''; // Placeholder for the clickable link
+                    
                     if (data === 'Pending') {
                         statusClass = 'badge-warning p-1 rounded';
+                        stat = "Submitted";
                     } else if (data === 'Done') {
                         statusClass = 'badge-success p-1 rounded';
-                    }
-                    else {
+                        stat = "Quote Sent (See Quotes Page)";
+                    } else if (data === 'Shipped') {
+                        statusClass = 'badge-success p-1 rounded';
+                        stat = "Shipped (Track Order)";
+                        // Make the status a clickable link
+                        link = `<a href="/requestquotationlist/shipmentLink/${row.request_quotation_id}" target="_blank" style="color: inherit; text-decoration: none;">${stat}</a>`;
+                    } else {
                         statusClass = 'badge-info p-1 rounded';
+                        stat = "Order Placed. Thank you!";
                     }
-                    return `<span class="${statusClass}">${data}</span>`;
+                    
+                    // Return the link if status is "Shipped", otherwise return just the status
+                    return link !== '' ? `<span class="${statusClass}">${link}</span>` : `<span class="${statusClass}">${stat}</span>`;
                 }
             },
             { "data": "datesubmitted" },
@@ -236,10 +248,10 @@ $(document).ready(function () {
                 "orderable": false,
                 "render": function (data, type, row) {
                     return `
-                        <a href="#" title="View or Edit (If Pending) Quote" class="quotation-list" data-id="${row.request_quotation_id}" data-status = "${row.status}" style="color: orange;">
+                        <a href="#" title="View or Edit (If Pending) Quote" class="quotation-list" data-id="${row.request_quotation_id}" data-status="${row.status}" style="color: orange;">
                             <i class="fa fa-file-text" style="font-size: 18px;"></i>
                         </a>
-                        <a href="#" title="Duplicate Quotation" class="duplicate-quotation" data-id="${row.request_quotation_id}" data-status = "${row.status}" style="color: blue;">
+                        <a href="#" title="Duplicate Quotation" class="duplicate-quotation" data-id="${row.request_quotation_id}" data-status="${row.status}" style="color: blue;">
                             <i class="fa fa-copy" style="font-size: 18px;"></i>
                         </a>
                         <a href="/requestquotationlist/download-files/${row.request_quotation_id}" download title="Download Files" style="color: green;">
@@ -257,7 +269,7 @@ $(document).ready(function () {
         "initComplete": function (settings, json) {
             $(this).trigger('dt-init-complete');
         }
-    });
+    });    
 
     function initializeStlViewer(stlContainer, stlLocation) {
         new StlViewer(stlContainer, {
