@@ -120,46 +120,47 @@ $(document).ready(function () {
                 $(document).on('click', '#chargeCreditCard', function () {
                     Swal.fire({
                         title: 'Credit Card Payment',
-                        html:
-                            '<label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="' + productAmount + '" readonly><br>' +
-                            '<label>Card Number:</label><input type="text" id="card_number" name="card_number" class="form-control" required><br>' +
-                            '<label>Expiration Date (YYYY-MM):</label><input type="text" id="expiration_date" name="expiration_date" class="form-control" required><br>' +
-                            '<label>CVV:</label><input type="text" id="cvv" name="cvv" class="form-control" required><br>' +
-                            '<label>Address:</label><input type="text" id="address" name="address" class="form-control" required><br>' +
-                            '<label>City:</label><input type="text" id="city" name="city" class="form-control" required><br>' +
-                            '<label>State:</label><input type="text" id="state" name="state" class="form-control" required><br>' +
-                            '<label>Zip Code:</label><input type="text" id="zipcode" name="zipcode" class="form-control" required><br>' +
-                            '<label>Phone Number:</label><input type="text" id="phonenumber" name="phonenumber" class="form-control" required><br>',
+                        html: `
+                            <label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="${productAmount}" readonly><br>
+                            <label>Card Number:</label><input type="text" id="card_number" name="card_number" class="form-control" required><br>
+                            <label>Expiration Date (YYYY-MM):</label><input type="text" id="expiration_date" name="expiration_date" class="form-control" required><br>
+                            <label>CVV:</label><input type="text" id="cvv" name="cvv" class="form-control" required><br>
+                            <label>Address:</label><input type="text" id="address" name="address" class="form-control" required><br>
+                            <label>City:</label><input type="text" id="city" name="city" class="form-control" required><br>
+                            <label>State:</label><input type="text" id="state" name="state" class="form-control" required><br>
+                            <label>Zip Code:</label><input type="text" id="zipcode" name="zipcode" class="form-control" required><br>
+                            <label>Phone Number:</label><input type="text" id="phonenumber" name="phonenumber" class="form-control" required><br>`,
                         focusConfirm: false,
                         preConfirm: () => {
-                            const cardNumber = Swal.getPopup().querySelector('#card_number').value;
-                            const expirationDate = Swal.getPopup().querySelector('#expiration_date').value;
-                            const cvv = Swal.getPopup().querySelector('#cvv').value;
-                            const address = Swal.getPopup().querySelector('#address').value;
-                            const city = Swal.getPopup().querySelector('#city').value;
-                            const state = Swal.getPopup().querySelector('#state').value;
-                            const zipcode = Swal.getPopup().querySelector('#zipcode').value;
-                            const phoneNumber = Swal.getPopup().querySelector('#phonenumber').value;
-
+                            const cardNumber = Swal.getPopup().querySelector('#card_number').value.trim();
+                            const expirationDate = Swal.getPopup().querySelector('#expiration_date').value.trim();
+                            const cvv = Swal.getPopup().querySelector('#cvv').value.trim();
+                            const address = Swal.getPopup().querySelector('#address').value.trim();
+                            const city = Swal.getPopup().querySelector('#city').value.trim();
+                            const state = Swal.getPopup().querySelector('#state').value.trim();
+                            const zipcode = Swal.getPopup().querySelector('#zipcode').value.trim();
+                            const phoneNumber = Swal.getPopup().querySelector('#phonenumber').value.trim();
+                
                             if (!cardNumber || !expirationDate || !cvv || !address || !city || !state || !zipcode || !phoneNumber) {
-                                Swal.showValidationMessage(`Please enter all required fields`);
+                                Swal.showValidationMessage(`Please fill out all required fields.`);
+                                return false;
                             }
-
+                
                             return {
-                                cardNumber: cardNumber,
-                                expirationDate: expirationDate,
-                                cvv: cvv,
-                                address: address,
-                                city: city,
-                                state: state,
-                                zipcode: zipcode,
-                                phoneNumber: phoneNumber,
+                                cardNumber,
+                                expirationDate,
+                                cvv,
+                                address,
+                                city,
+                                state,
+                                zipcode,
+                                phoneNumber,
                             };
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
                             const formData = result.value;
-
+                
                             $.ajax({
                                 type: 'POST',
                                 url: '/quotations/chargeCreditCard',
@@ -176,37 +177,30 @@ $(document).ready(function () {
                                     quotationId: quotationId
                                 },
                                 success: function (response) {
-                                    if (response.success) {
-                                        Swal.fire({
-                                            title: 'Payment Successful!',
-                                            text: response.message,
-                                            icon: 'success',
-                                            willClose: () => {
-                                                window.location.href = "/quotations";
-                                            }
-                                        });
-                                    } else {
-                                        Swal.fire({
-                                            title: 'Payment Failed!',
-                                            text: response.message,
-                                            icon: 'error',
-                                            willClose: () => {
-                                                window.location.href = "/quotations";
-                                            }
-                                        });
-                                    }
+                                    const { success, message } = response;
+                
+                                    Swal.fire({
+                                        title: success ? 'Payment Successful!' : 'Payment Failed!',
+                                        text: message,
+                                        icon: success ? 'success' : 'error',
+                                        willClose: () => {
+                                            window.location.href = "/quotations";
+                                        }
+                                    });
                                 },
-                                error: function (response) {
+                                error: function (xhr) {
+                                    const errorMessage = xhr.responseJSON?.message || 'An error occurred during the payment process. Please try again later.';
+                                    
                                     Swal.fire({
                                         title: 'Payment Error!',
-                                        text: response.responseJSON.message,
+                                        text: errorMessage,
                                         icon: 'error',
                                     });
                                 }
                             });
                         }
                     });
-                });            
+                });                        
             },
             error: function () {
                 console.error("Error fetching data");

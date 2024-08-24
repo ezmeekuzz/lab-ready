@@ -104,4 +104,44 @@ class UserMasterlistController extends SessionController
     
         return $this->response->setJSON(['status' => 'error', 'message' => 'User not found']);
     }    
+    public function downloadCSV()
+    {
+        $UsersModel = new UsersModel();
+
+        // Fetch all user data
+        $users = $UsersModel
+        ->where('usertype', 'Regular User')
+        ->findAll();
+
+        // Set the header for CSV output
+        $filename = 'users_masterlist_' . date('YmdHis') . '.csv';
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+
+        // Open PHP output stream as a file handle
+        $output = fopen('php://output', 'w');
+
+        // Write the CSV column headers
+        fputcsv($output, ['ID', 'Full Name', 'Email Address', 'Phone Number', 'Company Name', 'Address', 'City', 'State']);
+
+        // Write user data to CSV
+        foreach ($users as $user) {
+            fputcsv($output, [
+                $user['user_id'],
+                $user['fullname'],
+                $user['email'],
+                $user['phonenumber'],
+                $user['companyname'],
+                $user['address'],
+                $user['city'],
+                $user['state'],
+            ]);
+        }
+
+        // Close the output stream
+        fclose($output);
+
+        // Stop further output from the controller
+        exit();
+    }
 }

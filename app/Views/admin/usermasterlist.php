@@ -28,9 +28,14 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card card-statistics">
-                        <div class="card-header">
+                        <div class="card-header d-flex align-items-center">
                             <div class="card-heading">
                                 <h4 class="card-title"><i class="ti ti-user"></i> Users</h4>
+                            </div>
+                            <div class="ml-auto">
+                                <a id="downloadButton" class="btn btn-primary" href="/usermasterlist/downloadCSV">
+                                    <i class="ti ti-download"></i> Download CSV
+                                </a>
                             </div>
                         </div>
                         <div class="card-body">
@@ -44,6 +49,7 @@
                                             <th></th>
                                         </tr>
                                     </thead>
+                                    <!-- The table body will be dynamically filled by usermasterlist.js -->
                                 </table>
                             </div>
                         </div>

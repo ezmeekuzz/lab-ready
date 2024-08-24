@@ -32,7 +32,7 @@ class SendQuotationController extends SessionController
         $invoiceFile = $this->request->getFile('invoicefile');
         
         $dataRequestQuotation = [
-            'reference' => $this->generateReference($this->request->getPost('userId')),
+            'reference' =>  $productName,//$this->generateReference($this->request->getPost('userId')),
             'user_id' => $this->request->getPost('userId'),
             'status' => 'Done',
             'datesubmitted' => date('Y-m-d')

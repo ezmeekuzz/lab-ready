@@ -15,6 +15,7 @@ $routes->get('/add-user', 'Admin\AddUserController::index');
 $routes->post('/adduser/insert', 'Admin\AddUserController::insert');
 $routes->get('/user-masterlist', 'Admin\UserMasterlistController::index');
 $routes->post('/usermasterlist/getData', 'Admin\UserMasterlistController::getData');
+$routes->get('/usermasterlist/downloadCSV', 'Admin\UserMasterlistController::downloadCSV');
 $routes->delete('/usermasterlist/delete/(:num)', 'Admin\UserMasterlistController::delete/$1');
 $routes->get('/edit-user/(:num)', 'Admin\EditUserController::index/$1');
 $routes->post('/edituser/update', 'Admin\EditUserController::update');
