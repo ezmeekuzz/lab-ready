@@ -53,7 +53,7 @@ $(document).ready(function() {
         }
     
         if (invalidFiles.length > 0) {
-            Swal.fire('Error', `Invalid file type(s): ${invalidFiles.join(', ')}. Only STEP, Parasolid, IGES, and PDF files are allowed.`, 'error');
+            Swal.fire('Error', `Invalid file type(s): ${invalidFiles.join(', ')}. Only STEP, IGES AND STL files are allowed.`, 'error');
             return;
         }
     

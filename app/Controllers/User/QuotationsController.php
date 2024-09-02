@@ -195,9 +195,9 @@ class QuotationsController extends SessionController
     
                 if ($tresponse != null && $tresponse->getMessages() != null) {
                     $quotationsModel = new QuotationsModel();
-                    $requestQuotationsModel = new RequestQuotationsModel();
+                    $requestQuotationsModel = new RequestQuotationModel();
                     $usersModel = new UsersModel();
-                    $requestQuotationDetails = $requestQuotationsModel->where('request_quotation_id', $id)->find();
+                    $requestQuotationDetails = $requestQuotationsModel->where('request_quotation_id', $quotationId)->find();
                     $userDetails = $usersModel->find(session()->get('user_user_id'));
                     $updated = $quotationsModel->where('quotation_id', $quotationId)
                         ->set('address', $address)

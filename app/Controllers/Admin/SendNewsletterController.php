@@ -26,14 +26,14 @@ class SendNewsletterController extends SessionController
     
         // Email sending code
         $email = \Config\Services::email();
-        $email->setSubject($subject);
-        $email->setMessage($content);
     
         $successCount = 0;
         $failureCount = 0;
     
         foreach ($subscribers as $subscriber) {
             $email->setTo($subscriber['emailaddress']);
+            $email->setSubject($subject);  // Reset subject for each subscriber
+            $email->setMessage($content);  // Reset message content for each subscriber
             
             if ($email->send()) {
                 $successCount++;
@@ -55,5 +55,5 @@ class SendNewsletterController extends SessionController
         }
     
         return $this->response->setJSON($response);
-    }
+    }    
 }
