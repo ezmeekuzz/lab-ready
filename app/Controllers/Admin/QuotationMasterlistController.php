@@ -83,15 +83,13 @@ class QuotationMasterlistController extends SessionController
         $shipmentsModel = new ShipmentsModel();
         $quotationsModel = new QuotationsModel();
         $requestQuotationsModel = new RequestQuotationModel();
+        $requestQuotationsModel = new RequestQuotationModel();
 
         $data = $this->request->getPost();
         $validation = \Config\Services::validation();
 
         $validation->setRules([
-            'shipment_address' => 'required|string|max_length[255]',
-            'shipment_note' => 'required|string',
             'shipment_link' => 'required|valid_url',
-            'shipment_date' => 'required|valid_date'
         ]);
 
         if (!$validation->withRequest($this->request)->run()) {
@@ -100,10 +98,9 @@ class QuotationMasterlistController extends SessionController
 
         $shipmentData = [
             'quotation_id' => $id,
-            'shipment_address' => $data['shipment_address'],
-            'shipment_note' => $data['shipment_note'],
             'shipment_link' => $data['shipment_link'],
-            'shipment_date' => $data['shipment_date']
+            'reference' => $data['reference'],
+            'fullname' => $data['fullname'],
         ];
 
         $existingShipment = $shipmentsModel->where('quotation_id', $id)->first();
@@ -120,12 +117,12 @@ class QuotationMasterlistController extends SessionController
             ->where('request_quotation_id', $quotationDetails['request_quotation_id'])
             ->set('status', 'Shipped')->update();
         }
-
+        $message = view('emails/quote-shipped', $data);
         if ($update) {
             $email = \Config\Services::email();
             $email->setTo($data['email']);
             $email->setSubject('You\'re order has been shipped!');
-            $email->setMessage('<a hre="'.$data['shipment_link'].'">Check it here </a> You\'re order has been shipped');
+            $email->setMessage($message);
             if ($email->send()) {
                 return $this->response->setJSON(['status' => 'success']);
             } else {

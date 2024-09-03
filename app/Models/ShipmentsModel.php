@@ -13,7 +13,7 @@ class ShipmentsModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'quotation_id', 'shipment_address', 'shipment_note', 'shipment_link', 'shipment_date'
+        'quotation_id', 'shipment_link'
     ];
 
     protected bool $allowEmptyInserts = false;

@@ -889,7 +889,7 @@ $(document).ready(function () {
         }
     
         // Clear the input value to allow selecting the same file again if needed
-        assemblyFileInput.value = '';
+        //assemblyFileInput.value = '';
     });
     
     // Handle file deletion

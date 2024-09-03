@@ -34,7 +34,7 @@ $(document).ready(function () {
                 "render": function (data, type, row) {
                     let buttons = `<a href="#" title="Paid" class="paid-btn" data-id="${row.quotation_id}" style="color: blue;"><i class="ti ti-money" style="font-size: 18px;"></i></a>`;
                     if (row.stat === 'Paid') {
-                        buttons += `<a href="#" title="Update Shipment Status" class="shipment-btn" data-email="${row.email}" data-id="${row.quotation_id}" style="color: green;"><i class="ti ti-truck" style="font-size: 18px;"></i></a>`;
+                        buttons += `<a href="#" title="Update Shipment Status" data-fullname = "${row.fullname}" data-reference = "${row.reference}" class="shipment-btn" data-email="${row.email}" data-id="${row.quotation_id}" style="color: green;"><i class="ti ti-truck" style="font-size: 18px;"></i></a>`;
                     }
                     buttons += `<a href="#" title="Delete" class="delete-btn" data-id="${row.quotation_id}" style="color: red;"><i class="ti ti-trash" style="font-size: 18px;"></i></a>`;
                     return buttons;
@@ -134,6 +134,8 @@ $(document).ready(function () {
     $(document).on('click', '.shipment-btn', function () {
         let id = $(this).data('id');
         let email = $(this).data('email');
+        let fullname = $(this).data('fullname');
+        let reference = $(this).data('reference');
     
         $.ajax({
             url: '/quotationmasterlist/getShipment/' + id,
@@ -145,22 +147,12 @@ $(document).ready(function () {
                         title: 'Update Shipment Status',
                         html: `
                             <input type="hidden" id="quotation_id" value="${id}">
+                            <input type="hidden" id="fullname" value="${fullname}">
+                            <input type="hidden" id="reference" value="${reference}">
                             <input type="hidden" id="email" value="${email}">
-                            <div class="form-group">
-                                <label for="shipment_address">Shipment Address</label>
-                                <input type="text" id="shipment_address" class="form-control" value="${data.shipment_address || ''}" placeholder="Shipment Address">
-                            </div>
-                            <div class="form-group">
-                                <label for="shipment_note">Shipment Note</label>
-                                <textarea id="shipment_note" class="form-control" style="min-height: 150px;" placeholder="Shipment Note">${data.shipment_note || ''}</textarea>
-                            </div>
                             <div class="form-group">
                                 <label for="shipment_link">Shipment Link</label>
                                 <input type="text" id="shipment_link" class="form-control" value="${data.shipment_link || ''}" placeholder="Shipment Link">
-                            </div>
-                            <div class="form-group">
-                                <label for="shipment_date">Shipment Date</label>
-                                <input type="date" id="shipment_date" class="form-control" value="${data.shipment_date || ''}" placeholder="Shipment Date">
                             </div>
                         `,
                         showCancelButton: true,
@@ -174,10 +166,9 @@ $(document).ready(function () {
                                     method: 'POST',
                                     data: {
                                         quotation_id: document.getElementById('quotation_id').value,
-                                        shipment_address: document.getElementById('shipment_address').value,
-                                        shipment_note: document.getElementById('shipment_note').value,
+                                        fullname: document.getElementById('fullname').value,
+                                        reference: document.getElementById('reference').value,
                                         shipment_link: document.getElementById('shipment_link').value,
-                                        shipment_date: document.getElementById('shipment_date').value,
                                         email: document.getElementById('email').value
                                     },
                                     success: function (response) {

@@ -3,8 +3,6 @@ $(document).ready(function() {
     const fileInput = document.getElementById('fileInput');
     const fileSelectBtn = document.getElementById('fileSelectBtn');
     const fileList = document.getElementById('fileList');
-    const assemblyFileInput = document.getElementById('assemblyFile');
-    const assemblyFileNames = document.getElementById('assemblyFileNames');
     let selectedFiles = []; // Store selected files in this array
 
     const acceptedFileTypes = ['', 'step', 'iges', 'stl', 'igs', 'pdf', 'STEP', 'IGES', 'STL', 'IGS', 'PDF'];
@@ -322,18 +320,50 @@ $(document).ready(function() {
                 }); 
 
                 $(document).on('change', '#assemblyFile', function(event) {
-                    const inputFile = event.currentTarget;
-                    const fileCount = inputFile.files.length;
+                    const files = event.target.files;
+                    const selectedFiles = [];  // Ensure selectedFiles array is defined
+                    const assemblyFileNames = document.getElementById('assemblyFileNames'); // Assuming this is your target div
+                    const assemblyFileInput = event.currentTarget;
+                
+                    // Loop through selected files and display them
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        const fileId = Date.now() + i; // Generate a unique ID for the file
+                
+                        // Add file to the selectedFiles array
+                        selectedFiles.push({
+                            id: fileId,
+                            file: file
+                        });
+                
+                        // Create HTML for the selected file
+                        const assemblyFileHtml = `
+                            <div class="label label-info assembly-file-item position-relative d-inline-block" style="padding-right: 25px;">
+                                ${file.name}
+                                <button type="button" data-id="${fileId}" class="delete-file-btn-unsave btn btn-danger btn-sm position-absolute rounded-circle" style="top: -5px; right: -5px;">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div><br/>
+                        `;
+                
+                        // Append the file HTML to the assemblyFileNames div
+                        assemblyFileNames.insertAdjacentHTML('beforeend', assemblyFileHtml);
+                    }
+                
+                    // Clear the input value to allow selecting the same file again if needed
+                    //assemblyFileInput.value = '';
+                
+                    // Update the file input label
+                    const fileCount = files.length;
                     const label = $(this).siblings('.custom-file-label');
-        
                     if (fileCount > 1) {
                         label.text(`${fileCount} files selected`);
                     } else if (fileCount === 1) {
-                        label.text(inputFile.files[0].name);
+                        label.text(files[0].name);
                     } else {
                         label.text('Choose file');
                     }
-                });
+                });                
 
                 document.getElementById('formsContainer').innerHTML = allFormsHtml;
 
@@ -343,18 +373,13 @@ $(document).ready(function() {
                     let formData = new FormData();
                     let proceed = true;
                 
-                    const assemblyFileInput = $('[name="assemblyFile[]"]')[0];
-                
-                    if (!assemblyFileInput) {
-                        console.error('Assembly file input not found');
-                        return;
-                    }
-                
-                    const assemblyFiles = assemblyFileInput.files;
-                    console.log('Assembly Files:', assemblyFiles);
-                
-                    for (let i = 0; i < assemblyFiles.length; i++) {
-                        formData.append('assemblyFile[]', assemblyFiles[i]);
+                    const assemblyFileInput = document.getElementById('assemblyFile');
+                    if (assemblyFileInput && assemblyFileInput.files.length > 0) {
+                        for (let i = 0; i < assemblyFileInput.files.length; i++) {
+                            formData.append('assemblyFile[]', assemblyFileInput.files[i]);
+                        }
+                    } else {
+                        console.error('No files selected for assemblyFile[]');
                     }
                 
                     $('#formsContainer').find('.card').each(function(index) {
@@ -369,30 +394,28 @@ $(document).ready(function() {
                         if (!printFile && !material) {
                             Swal.fire('Error', 'Material field is required if Print File is not provided', 'error');
                             proceed = false;
-                            return false; // Break out of the loop
+                            return false;
                         }
                 
                         if (!quantity) {
                             Swal.fire('Error', 'Quantity field is required', 'error');
                             proceed = false;
-                            return false; // Break out of the loop
+                            return false;
                         }
                 
-                        // Append form data as JSON string
                         formData.append(`forms[${index}][partNumber]`, partNumber);
                         formData.append(`forms[${index}][material]`, material);
                         formData.append(`forms[${index}][quotetype]`, quoteType);
                         formData.append(`forms[${index}][quantity]`, quantity);
                         formData.append(`forms[${index}][quotation_item_id]`, quotationItemId);
                 
-                        // Append the file, if provided
                         if (printFile) {
                             formData.append(`forms[${index}][printFile]`, printFile);
                         }
                     });
                 
                     if (!proceed) {
-                        return; // Stop form submission if conditions are not met
+                        return;
                     }
                 
                     Swal.fire({
@@ -412,7 +435,7 @@ $(document).ready(function() {
                         contentType: false,
                         success: function(response) {
                             Swal.fire('Success', 'Quotations submitted successfully!', 'success').then(() => {
-                                $('#requestquotation')[0].reset();
+                                $('#submitQuotation')[0].reset();
                                 $('#assemblyFile').val('');
                                 $('#assemblyFile').siblings('.custom-file-label').text('Choose file');
                                 getQuotationLists();
@@ -421,7 +444,6 @@ $(document).ready(function() {
                         error: function(response) {
                             Swal.close();
                 
-                            // Check if responseJSON is available
                             if (response.responseJSON && response.responseJSON.errors) {
                                 let errors = response.responseJSON.errors;
                                 let errorMessages = Object.values(errors).join("\n");
@@ -431,7 +453,7 @@ $(document).ready(function() {
                             }
                         }
                     });
-                });
+                });                
                                          
 
                 response.forEach((item, index) => {
@@ -575,39 +597,6 @@ $(document).ready(function() {
         });
     });
     
-    // Handle file selection
-    assemblyFileInput.addEventListener('change', function(event) {
-        const files = event.target.files;
-    
-        // Loop through selected files and display them
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const fileId = Date.now() + i; // Generate a unique ID for the file
-    
-            // Add file to the selectedFiles array
-            selectedFiles.push({
-                id: fileId,
-                file: file
-            });
-    
-            // Create HTML for the selected file
-            const assemblyFileHtml = `
-                <div class="label label-info assembly-file-item position-relative d-inline-block" style="padding-right: 25px;">
-                    ${file.name}
-                    <button type="button" data-id="${fileId}" class="delete-file-btn-unsave btn btn-danger btn-sm position-absolute rounded-circle" style="top: -5px; right: -5px;">
-                        <i class="fa fa-times"></i>
-                    </button>
-                </div><br/>
-            `;
-    
-            // Append the file HTML to the assemblyFileNames div
-            assemblyFileNames.insertAdjacentHTML('beforeend', assemblyFileHtml);
-        }
-    
-        // Clear the input value to allow selecting the same file again if needed
-        assemblyFileInput.value = '';
-    });
-    
     // Handle file deletion
     $(document).on('click', '.delete-file-btn-unsave', function() {
         var button = $(this); // Reference to the clicked delete button
@@ -623,13 +612,9 @@ $(document).ready(function() {
     
         // Create a new DataTransfer object to update the files input
         const dataTransfer = new DataTransfer();
-    
-        // Add the remaining files to the DataTransfer object
         selectedFiles.forEach(fileObj => {
             dataTransfer.items.add(fileObj.file);
         });
-    
-        // Update the input files property with the updated DataTransfer files
         assemblyFileInput.files = dataTransfer.files;
     });
 });
