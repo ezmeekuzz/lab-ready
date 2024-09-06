@@ -122,9 +122,14 @@ class QuotationsController extends SessionController
     private function adminEmailReceived($data)
     {
         $message = "";
-        $message .= "An order has been paid with this Quotation Number : " . $data['requestQuotationDetails']['reference'];
+        $reference = $data['requestQuotationDetails']['reference'] ?? null; // Check if 'reference' exists
+        $productName = $data['quotationDetails']['productname'];
+
+        // Use the reference if it exists and is not empty, otherwise use the product name
+        $message .= "An order has been paid with this Quotation Number: " . (!empty($reference) ? $reference : $productName);
+        
         $email = \Config\Services::email();
-        $email->setTo('rustomcodilan@gmail.com');
+        $email->setTo('charlie@lab-ready.net');
         $email->setSubject('Quotation Payment');
         $email->setMessage($message);
         $email->send();
@@ -207,11 +212,13 @@ class QuotationsController extends SessionController
                         ->set('phonenumber', $phoneNumber)
                         ->set('status', 'Paid')
                         ->update();
+                    $quotationDetails = $quotationsModel->find($quotationId);
 
                     $data = [
+                        'userDetails' => $userDetails,
+                        'quotationDetails' => $quotationDetails,
                         'requestQuotationDetails' => $requestQuotationDetails
                     ];
-                    $quotationDetails = $quotationsModel->find($quotationId);
                         
                     $requestQuotationsModel->where('request_quotation_id', $quotationDetails['request_quotation_id'])
                     ->set('status', 'Paid')
