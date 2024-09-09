@@ -211,7 +211,11 @@ $(document).ready(function () {
         "serverSide": true,
         "ajax": {
             "url": "/requestquotationlist/getData",
-            "type": "POST"
+            "type": "POST",
+            "data": function (d) {
+                d.year = $('#yearFilter').val();   // Pass the selected year
+                d.month = $('#monthFilter').val(); // Pass the selected month
+            }
         },
         "columns": [
             { "data": "reference" },
@@ -220,8 +224,8 @@ $(document).ready(function () {
                 "render": function (data, type, row) {
                     let statusClass = '';
                     let stat = '';
-                    let link = ''; // Placeholder for the clickable link
-                    
+                    let link = '';
+
                     if (data === 'Pending') {
                         statusClass = 'badge-warning p-1 rounded';
                         stat = "Submitted";
@@ -231,14 +235,11 @@ $(document).ready(function () {
                     } else if (data === 'Shipped') {
                         statusClass = 'badge-success p-1 rounded';
                         stat = "Shipped (Track Order)";
-                        // Make the status a clickable link
                         link = `<a href="/requestquotationlist/shipmentLink/${row.request_quotation_id}" target="_blank" style="color: inherit; text-decoration: none;">${stat}</a>`;
                     } else {
                         statusClass = 'badge-info p-1 rounded';
                         stat = "Order Placed. Thank you!";
                     }
-                    
-                    // Return the link if status is "Shipped", otherwise return just the status
                     return link !== '' ? `<span class="${statusClass}">${link}</span>` : `<span class="${statusClass}">${stat}</span>`;
                 }
             },
@@ -269,7 +270,19 @@ $(document).ready(function () {
         "initComplete": function (settings, json) {
             $(this).trigger('dt-init-complete');
         }
-    });    
+    });
+
+    // Apply filter when the filter button is clicked
+    $('#filterBtn').on('click', function() {
+        table.ajax.reload(); // Reload DataTable with new filters
+    });
+
+    // Reset filter button
+    $('#resetBtn').on('click', function() {
+        $('#yearFilter').val('');   // Reset year filter
+        $('#monthFilter').val('');  // Reset month filter
+        table.ajax.reload();        // Reload DataTable with reset filters
+    });
 
     function initializeStlViewer(stlContainer, stlLocation) {
         new StlViewer(stlContainer, {

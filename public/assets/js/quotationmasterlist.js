@@ -4,7 +4,11 @@ $(document).ready(function () {
         "serverSide": true,
         "ajax": {
             "url": "/quotationmasterlist/getData",
-            "type": "POST"
+            "type": "POST",
+            "data": function (d) {
+                d.year = $('#yearFilter').val();  // Pass the selected year
+                d.month = $('#monthFilter').val(); // Pass the selected month
+            }
         },
         "columns": [
             { 
@@ -48,6 +52,18 @@ $(document).ready(function () {
             $(this).trigger('dt-init-complete');
         }
     });
+    
+    // Apply filter when the filter button is clicked
+    $('#filterBtn').on('click', function() {
+        table.ajax.reload();  // Reload the table with the selected year and month
+    });
+    
+    // Reset filters when the reset button is clicked
+    $('#resetBtn').on('click', function() {
+        $('#yearFilter').val('');   // Clear the year filter
+        $('#monthFilter').val('');  // Clear the month filter
+        table.ajax.reload();        // Reload the table with the default data
+    });    
 
     $(document).on('click', '.delete-btn', function () {
         let id = $(this).data('id');

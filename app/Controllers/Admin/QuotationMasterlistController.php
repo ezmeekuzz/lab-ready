@@ -22,12 +22,22 @@ class QuotationMasterlistController extends SessionController
 
     public function getData()
     {
-        return datatables('quotations')
+        // Get the year and month from the request
+        $year = $this->request->getPost('year') ?: date('Y');   // Default to current year if not provided
+        $month = $this->request->getPost('month') ?: date('m'); // Default to current month if not provided
+    
+        // Start the query
+        $query = datatables('quotations')
             ->select('quotations.*, request_quotations.*, users.*, request_quotations.user_id as uid, quotations.status as stat')
             ->join('request_quotations', 'request_quotations.request_quotation_id = quotations.request_quotation_id', 'LEFT JOIN')
             ->join('users', 'request_quotations.user_id = users.user_id', 'LEFT JOIN')
-            ->make();
+            ->where('YEAR(quotations.quotationdate)', $year)     // Filter by the year (default or selected)
+            ->where('MONTH(quotations.quotationdate)', $month);  // Filter by the month (default or selected)
+    
+        // Return the filtered data
+        return $query->make();
     }
+    
 
     public function delete($id)
     {

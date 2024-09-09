@@ -24,6 +24,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Filter section -->
             <div class="row mb-5">
                 <div class="col-lg-12 d-flex justify-content-end">
                     <div class="col-lg-4 p-0">
@@ -31,8 +33,38 @@
                             <input type="text" id="searchBox" class="form-control" placeholder="Search Quotes">
                         </div>
                     </div>
+                    <!-- Year Dropdown -->
+                    <div class="col-lg-2">
+                        <select id="yearFilter" class="form-control">
+                            <option value="">Select Year</option>
+                            <?php
+                            $currentYear = date("Y");
+                            for ($year = 2020; $year <= $currentYear; $year++) {
+                                echo "<option value=\"$year\">$year</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <!-- Month Dropdown -->
+                    <div class="col-lg-2">
+                        <select id="monthFilter" class="form-control">
+                            <option value="">Select Month</option>
+                            <?php
+                            $months = array(
+                                '01' => 'January', '02' => 'February', '03' => 'March', '04' => 'April',
+                                '05' => 'May', '06' => 'June', '07' => 'July', '08' => 'August',
+                                '09' => 'September', '10' => 'October', '11' => 'November', '12' => 'December'
+                            );
+                            foreach ($months as $num => $name) {
+                                echo "<option value=\"$num\">$name</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
                 </div>
             </div>
+
+            <!-- No quotes message -->
             <div class="row">
                 <div class="col-lg-12">
                     <div id="noQuotationsMessage" class="alert alert-info" style="display: none;">
@@ -40,12 +72,16 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Quotations display area -->
             <div class="row" id="card-columns">
                 
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal for quotation details -->
 <div class="modal fade" id="quotationDetails" tabindex="-1" role="dialog" aria-labelledby="quotationDetailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -61,5 +97,8 @@
         </div>
     </div>
 </div>
+
 <?=$this->include('user/footer');?>
+
+<!-- Filter functionality script -->
 <script src="<?=base_url();?>assets/js/quotations.js"></script>

@@ -25,9 +25,23 @@ $(document).ready(function () {
                 htmlContent += '<div class="date mt-3"><strong>Track Order:</strong> <a href="/' + shipmentLink + '" target="_blank">Track Order</a></div>';
                 if (response.status === 'Unpaid') {
                     htmlContent += '<div class="row">';
-                    htmlContent += '<div class="mb-3 mt-3 col-lg-12"><div id="paypalButton" class="form-group"></div><button type="button" class="btn btn-info p-3 w-100" id="chargeCreditCard"><img src="https://static.vecteezy.com/system/resources/previews/019/879/184/original/credit-cards-payment-icon-on-transparent-background-free-png.png" class="w-25" /> Credit Card Payment</button></div>';
+                    htmlContent += '<div class="mb-3 mt-3 col-lg-12">';
+                    htmlContent += '<div id="paypalButton" class="form-group"></div>';
+                    
+                    // Credit Card Button
+                    htmlContent += '<button type="button" class="btn btn-info p-3 w-100 mb-2" id="chargeCreditCard">';
+                    htmlContent += '<img src="https://static.vecteezy.com/system/resources/previews/019/879/184/original/credit-cards-payment-icon-on-transparent-background-free-png.png" class="w-25" /> Credit Card Payment';
+                    htmlContent += '</button>';
+                    
+                    // eCheck Button
+                    htmlContent += '<button type="button" class="btn btn-success p-3 w-100" id="chargeECheck">';
+                    htmlContent += '<img src="https://example.com/path-to-echeck-icon.png" class="w-25" /> eCheck Payment';
+                    htmlContent += '</button>';
+                    
+                    htmlContent += '</div>';
                     htmlContent += '</div>';
                 }
+                
                 htmlContent += '</div>'; // Close book-details div
                 htmlContent += '</div>'; // Close book-layout div
 
@@ -117,14 +131,20 @@ $(document).ready(function () {
                 }).render('#paypalButton');
 
                 // Add event listener for the "chargeCreditCard" button
-                $(document).on('click', '#chargeCreditCard', function () {
+                $(document).on('click', '#chargeECheck', function () {
                     Swal.fire({
-                        title: 'Credit Card Payment',
+                        title: 'eCheck Payment',
                         html: `
                             <label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="${productAmount}" readonly><br>
-                            <label>Card Number:</label><input type="text" id="card_number" name="card_number" class="form-control" required><br>
-                            <label>Expiration Date (YYYY-MM):</label><input type="text" id="expiration_date" name="expiration_date" class="form-control" required><br>
-                            <label>CVV:</label><input type="text" id="cvv" name="cvv" class="form-control" required><br>
+                            <label>Bank Account Number:</label><input type="text" id="account_number" name="account_number" class="form-control" required><br>
+                            <label>Routing Number:</label><input type="text" id="routing_number" name="routing_number" class="form-control" required><br>
+                            <label>Account Type:</label>
+                            <select id="account_type" name="account_type" class="form-control" required>
+                                <option value="">Select Account Type</option>
+                                <option value="checking">Checking</option>
+                                <option value="savings">Savings</option>
+                            </select><br>
+                            <label>Account Holder Name:</label><input type="text" id="account_holder" name="account_holder" class="form-control" required><br>
                             <label>Address:</label><input type="text" id="address" name="address" class="form-control" required><br>
                             <label>City:</label><input type="text" id="city" name="city" class="form-control" required><br>
                             <label>State:</label><input type="text" id="state" name="state" class="form-control" required><br>
@@ -132,24 +152,26 @@ $(document).ready(function () {
                             <label>Phone Number:</label><input type="text" id="phonenumber" name="phonenumber" class="form-control" required><br>`,
                         focusConfirm: false,
                         preConfirm: () => {
-                            const cardNumber = Swal.getPopup().querySelector('#card_number').value.trim();
-                            const expirationDate = Swal.getPopup().querySelector('#expiration_date').value.trim();
-                            const cvv = Swal.getPopup().querySelector('#cvv').value.trim();
+                            const accountNumber = Swal.getPopup().querySelector('#account_number').value.trim();
+                            const routingNumber = Swal.getPopup().querySelector('#routing_number').value.trim();
+                            const accountType = Swal.getPopup().querySelector('#account_type').value.trim();
+                            const accountHolder = Swal.getPopup().querySelector('#account_holder').value.trim();
                             const address = Swal.getPopup().querySelector('#address').value.trim();
                             const city = Swal.getPopup().querySelector('#city').value.trim();
                             const state = Swal.getPopup().querySelector('#state').value.trim();
                             const zipcode = Swal.getPopup().querySelector('#zipcode').value.trim();
                             const phoneNumber = Swal.getPopup().querySelector('#phonenumber').value.trim();
-                
-                            if (!cardNumber || !expirationDate || !cvv || !address || !city || !state || !zipcode || !phoneNumber) {
+                    
+                            if (!accountNumber || !routingNumber || !accountType || !accountHolder || !address || !city || !state || !zipcode || !phoneNumber) {
                                 Swal.showValidationMessage(`Please fill out all required fields.`);
                                 return false;
                             }
-                
+                    
                             return {
-                                cardNumber,
-                                expirationDate,
-                                cvv,
+                                accountNumber,
+                                routingNumber,
+                                accountType,
+                                accountHolder,
                                 address,
                                 city,
                                 state,
@@ -160,15 +182,16 @@ $(document).ready(function () {
                     }).then((result) => {
                         if (result.isConfirmed) {
                             const formData = result.value;
-                
+                    
                             $.ajax({
                                 type: 'POST',
-                                url: '/quotations/chargeCreditCard',
+                                url: '/quotations/chargeEcheck',
                                 data: {
                                     amount: $('#amount').val(),
-                                    cardNumber: formData.cardNumber,
-                                    expirationDate: formData.expirationDate,
-                                    cvv: formData.cvv,
+                                    accountNumber: formData.accountNumber,
+                                    routingNumber: formData.routingNumber,
+                                    accountType: formData.accountType,
+                                    accountHolder: formData.accountHolder,
                                     address: formData.address,
                                     city: formData.city,
                                     state: formData.state,
@@ -178,7 +201,7 @@ $(document).ready(function () {
                                 },
                                 success: function (response) {
                                     const { success, message } = response;
-                
+                    
                                     Swal.fire({
                                         title: success ? 'Payment Successful!' : 'Payment Failed!',
                                         text: message,
@@ -200,7 +223,7 @@ $(document).ready(function () {
                             });
                         }
                     });
-                });                        
+                });                                    
             },
             error: function () {
                 console.error("Error fetching data");
@@ -208,11 +231,15 @@ $(document).ready(function () {
         });
     });
 
-    function fetchData(search = '') {
+    function fetchData(search = '', year = '', month = '') {
         $.ajax({
             type: "GET",
-            url: "/quotations/getData",
-            data: { search: search },
+            url: "/quotations/getData", // Make sure the backend handles year and month filters
+            data: { 
+                search: search,
+                year: year,
+                month: month
+            },
             success: function (response) {
                 $("#card-columns").empty();
                 if(response.length === 0) {
@@ -252,9 +279,33 @@ $(document).ready(function () {
             }
         });
     }
-
-    // Initial fetch
-    fetchData();
+    
+    // Function to trigger fetch with filters
+    function applyFilters() {
+        var search = $('#searchBox').val(); // Get the search query from the search box
+        var year = $('#yearFilter').val();  // Get the selected year from the year dropdown
+        var month = $('#monthFilter').val(); // Get the selected month from the month dropdown
+    
+        // Fetch data with the search, year, and month filters
+        fetchData(search, year, month);
+    }
+    
+    // Event listeners for filter change
+    $('#yearFilter').on('change', function() {
+        applyFilters(); // Fetch data when the year filter is changed
+    });
+    
+    $('#monthFilter').on('change', function() {
+        applyFilters(); // Fetch data when the month filter is changed
+    });
+    
+    // Search box keyup event listener to trigger search
+    $('#searchBox').on('keyup', function() {
+        applyFilters(); // Fetch data as the user types in the search box
+    });
+    
+    // Initial fetch without filters
+    fetchData();    
 
     // Event listener for search box
     $('#searchBox').on('input', function() {

@@ -27,19 +27,31 @@ class QuotationsController extends SessionController
         $userQuotationsModel = new UserQuotationsModel();
         $search = $this->request->getVar('search');
     
+        // Get year and month from request, or use the current year and month if not provided
+        $year = $this->request->getVar('year') ?: date('Y');
+        $month = $this->request->getVar('month') ?: date('m');
+    
+        // Query to get the quotations joined with related tables
         $userQuotationList = $userQuotationsModel
             ->join('quotations', 'quotations.quotation_id=user_quotations.quotation_id', 'left')
             ->join('request_quotations', 'request_quotations.request_quotation_id=quotations.request_quotation_id', 'left')
             ->where('user_quotations.user_id', session()->get('user_user_id'));
     
+        // Apply search filter if provided
         if ($search) {
             $userQuotationList = $userQuotationList->like('request_quotations.reference', $search);
         }
     
+        // Apply year and month filter by default to the current year and month
+        $userQuotationList = $userQuotationList->where('YEAR(quotations.quotationdate)', $year)
+                                               ->where('MONTH(quotations.quotationdate)', $month);
+    
+        // Fetch the filtered quotations
         $userQuotationList = $userQuotationList->findAll();
     
+        // Return the filtered results as JSON
         return $this->response->setJSON($userQuotationList);
-    }
+    }      
     
     public function quotationDetails()
     {
@@ -267,4 +279,112 @@ class QuotationsController extends SessionController
             ]);
         }
     } 
+    public function chargeEcheck()
+    {
+        helper('form');
+
+        $address = $this->request->getPost('address');
+        $city = $this->request->getPost('city');
+        $state = $this->request->getPost('state');
+        $zipcode = $this->request->getPost('zipcode');
+        $phoneNumber = $this->request->getPost('phoneNumber');
+        $quotationId = $this->request->getPost('quotationId');
+
+        // Get API credentials
+        $config = new \Config\AuthorizeNet();
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName($config->apiLoginId);
+        $merchantAuthentication->setTransactionKey($config->transactionKey);
+
+        // Create Bank Account
+        $bankAccount = new AnetAPI\BankAccountType();
+        $bankAccount->setRoutingNumber($this->request->getPost('routingNumber'));
+        $bankAccount->setAccountNumber($this->request->getPost('accountNumber'));
+        $bankAccount->setNameOnAccount($this->request->getPost('nameOnAccount'));
+        $bankAccount->setAccountType('checking'); // Or savings
+
+        $payment = new AnetAPI\PaymentType();
+        $payment->setBankAccount($bankAccount);
+
+        // Transaction Request
+        $transactionRequestType = new AnetAPI\TransactionRequestType();
+        $transactionRequestType->setTransactionType("authCaptureTransaction");
+        $transactionRequestType->setAmount($this->request->getPost('amount'));
+        $transactionRequestType->setPayment($payment);
+
+        // Create Transaction Request
+        $request = new AnetAPI\CreateTransactionRequest();
+        $request->setMerchantAuthentication($merchantAuthentication);
+        $request->setTransactionRequest($transactionRequestType);
+
+        // Send request to Authorize.net
+        $controller = new AnetController\CreateTransactionController($request);
+        $response = $controller->executeWithApiResponse($config->sandbox ? \net\authorize\api\constants\ANetEnvironment::SANDBOX : \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+
+        // Handle response and update database
+        if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+            $tresponse = $response->getTransactionResponse();
+            if ($tresponse != null && $tresponse->getMessages() != null) {
+                $quotationsModel = new QuotationsModel();
+                $requestQuotationsModel = new RequestQuotationModel();
+                $usersModel = new UsersModel();
+                $requestQuotationDetails = $requestQuotationsModel->where('request_quotation_id', $quotationId)->find();
+                $userDetails = $usersModel->find(session()->get('user_user_id'));
+                $updated = $quotationsModel->where('quotation_id', $quotationId)
+                    ->set('address', $address)
+                    ->set('city', $city)
+                    ->set('state', $state)
+                    ->set('zipcode', $zipcode)
+                    ->set('phonenumber', $phoneNumber)
+                    ->set('status', 'Paid')
+                    ->update();
+                $quotationDetails = $quotationsModel->find($quotationId);
+
+                $data = [
+                    'userDetails' => $userDetails,
+                    'quotationDetails' => $quotationDetails,
+                    'requestQuotationDetails' => $requestQuotationDetails
+                ];
+                    
+                $requestQuotationsModel->where('request_quotation_id', $quotationDetails['request_quotation_id'])
+                ->set('status', 'Paid')
+                ->update();
+
+                $message = view('emails/payment-success', $data);
+                // Email sending code
+                $pdfFilePath = FCPATH . $quotationDetails['invoicefile'];
+                $this->adminEmailReceived($data);
+                $email = \Config\Services::email();
+                $email->setTo($userDetails['email']);
+                $email->setSubject('We\'ve got you\'re payment!');
+                $email->setMessage($message);
+                $email->attach($pdfFilePath);
+                if ($email->send()) {
+                    $response = [
+                        'success' => true,
+                        'message' => 'Successfully Paid!',
+                    ];
+                } else {
+                    $response = [
+                        'success' => false,
+                        'message' => 'Failed to send message!',
+                    ];
+                }
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Transaction Successful: ' . $tresponse->getMessages()[0]->getDescription()
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Transaction Failed: ' . $response->getMessages()->getMessage()[0]->getText()
+                ]);
+            }
+        } else {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No response returned'
+            ]);
+        }
+    }
 }

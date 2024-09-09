@@ -51,6 +51,7 @@ $routes->post('/materialmasterlist/updateOrder', 'Admin\MaterialMasterlistContro
 
 /*User*/
 $routes->post('/quotations/chargeCreditCard', 'User\QuotationsController::chargeCreditCard');
+$routes->post('/quotations/chargeEcheck', 'User\QuotationsController::chargeEcheck');
 $routes->get('/quotations', 'User\QuotationsController::index');
 $routes->get('/quotations/getData', 'User\QuotationsController::getData');
 $routes->get('/quotations/quotationDetails', 'User\QuotationsController::quotationDetails');

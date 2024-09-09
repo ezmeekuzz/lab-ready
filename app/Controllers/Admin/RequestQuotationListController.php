@@ -25,13 +25,31 @@ class RequestQuotationListController extends SessionController
     }
     public function getData()
     {
-        return datatables('request_quotations')
+        // Get year and month from the POST request
+        $year = $this->request->getPost('year');
+        $month = $this->request->getPost('month');
+    
+        // Start the query
+        $query = datatables('request_quotations')
             ->select('request_quotations.*, users.*, request_quotations.user_id as uid')
             ->join('users', 'request_quotations.user_id = users.user_id', 'LEFT JOIN')
             ->where('request_quotations.status !=', 'Ongoing')
-            ->where('request_quotations.status !=', 'Duplicate')
-            ->make();
+            ->where('request_quotations.status !=', 'Duplicate');
+    
+        // Apply year filter if provided
+        if ($year) {
+            $query = $query->where('YEAR(request_quotations.datesubmitted)', $year); // Assuming 'datesubmitted' is the date field
+        }
+    
+        // Apply month filter if provided
+        if ($month) {
+            $query = $query->where('MONTH(request_quotations.datesubmitted)', $month);
+        }
+    
+        // Return the filtered data
+        return $query->make();
     }
+    
     public function updateStatus($id)
     {
         $requestQuotationModel = new RequestQuotationModel();

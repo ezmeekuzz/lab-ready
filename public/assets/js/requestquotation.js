@@ -391,8 +391,8 @@ $(document).ready(function() {
                         const printFileInput = $(this).find('[name="printFile"]')[0];
                         const printFile = printFileInput ? printFileInput.files[0] : null;
                 
-                        if (!printFile && !material) {
-                            Swal.fire('Error', 'Material field is required if Print File is not provided', 'error');
+                        if (!material) {
+                            Swal.fire('Error', 'Material field is required', 'error');
                             proceed = false;
                             return false;
                         }

@@ -4,7 +4,12 @@ $(document).ready(function () {
         "serverSide": true,
         "ajax": {
             "url": "/requestquotationmasterlist/getData",
-            "type": "POST"
+            "type": "POST",
+            "data": function (d) {
+                // Add year and month to the request
+                d.year = $('#yearFilter').val();
+                d.month = $('#monthFilter').val();
+            }
         },
         "columns": [
             { 
@@ -22,8 +27,7 @@ $(document).ready(function () {
                         statusClass = 'badge badge-warning';
                     } else if (data === 'Done') {
                         statusClass = 'badge badge-success';
-                    }
-                    else {
+                    } else {
                         statusClass = 'badge-info p-1 rounded';
                     }
                     return `<span class="${statusClass}">${data}</span>`;
@@ -47,7 +51,7 @@ $(document).ready(function () {
         "createdRow": function (row, data) {
             $(row).attr('data-id', data.request_quotation_id);
             $(row).attr('data-reference', data.reference);
-
+    
             $('td', row).each(function (index) {
                 if (index !== 7) { // Assuming the actions column is at index 5
                     $(this).attr('data-user-id', data.uid);
@@ -59,6 +63,18 @@ $(document).ready(function () {
             $(this).trigger('dt-init-complete');
         }
     });
+    
+    // Apply filter when the filter button is clicked
+    $('#filterBtn').on('click', function() {
+        table.ajax.reload();  // Reload the table with the selected year and month
+    });
+    
+    // Reset filters when the reset button is clicked
+    $('#resetBtn').on('click', function() {
+        $('#yearFilter').val('');   // Clear the year filter
+        $('#monthFilter').val('');  // Clear the month filter
+        table.ajax.reload();        // Reload the table with the default data
+    });    
 
     $('#requestquotationmasterlist tbody').on('click', 'td', function () {
         let cell = table.cell(this);

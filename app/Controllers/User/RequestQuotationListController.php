@@ -26,11 +26,42 @@ class RequestQuotationListController extends SessionController
 
     public function getData()
     {
-        return datatables('request_quotations')
-        ->where('status !=', 'Ongoing')
-        ->where('user_id', session()->get('user_user_id'))
-        ->make();
-    }
+        // Get month and year from the request
+        $month = $this->request->getPost('month');
+        $year = $this->request->getPost('year');
+    
+        // Get the current month and year if the filters are not provided
+        $currentYear = date('Y');
+        $currentMonth = date('m');
+    
+        // Start your datatable query
+        $query = datatables('request_quotations')
+            ->where('status !=', 'Ongoing')
+            ->where('user_id', session()->get('user_user_id'));
+    
+        // If month and year are not provided, filter by the current month and year
+        if (!$year && !$month) {
+            $query = $query->where('YEAR(datesubmitted)', $currentYear)
+                           ->where('MONTH(datesubmitted)', $currentMonth);
+        }
+        // If only year is provided, filter by the year
+        elseif ($year && !$month) {
+            $query = $query->where('YEAR(datesubmitted)', $year);
+        }
+        // If only month is provided, filter by the current year and the provided month
+        elseif ($month && !$year) {
+            $query = $query->where('YEAR(datesubmitted)', $currentYear)
+                           ->where('MONTH(datesubmitted)', $month);
+        }
+        // If both month and year are provided, filter by them
+        elseif ($month && $year) {
+            $query = $query->where('YEAR(datesubmitted)', $year)
+                           ->where('MONTH(datesubmitted)', $month);
+        }
+    
+        // Return the filtered data
+        return $query->make();
+    }    
 
     public function delete($id)
     {

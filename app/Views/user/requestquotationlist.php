@@ -24,6 +24,42 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Filter Section -->
+            <div class="row mb-4">
+                <div class="col-lg-3">
+                    <select id="yearFilter" class="form-control">
+                        <option value="">Select Year</option>
+                        <?php
+                        $currentYear = date('Y');
+                        for ($year = 2020; $year <= $currentYear; $year++) {
+                            echo "<option value='$year'>$year</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="col-lg-3">
+                    <select id="monthFilter" class="form-control">
+                        <option value="">Select Month</option>
+                        <?php
+                        $months = array(
+                            '01' => 'January', '02' => 'February', '03' => 'March', '04' => 'April',
+                            '05' => 'May', '06' => 'June', '07' => 'July', '08' => 'August',
+                            '09' => 'September', '10' => 'October', '11' => 'November', '12' => 'December'
+                        );
+                        foreach ($months as $num => $name) {
+                            echo "<option value='$num'>$name</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="col-lg-6">
+                    <button id="filterBtn" class="btn btn-primary">Filter</button>
+                    <button id="resetBtn" class="btn btn-secondary">Reset</button>
+                </div>
+            </div>
+
+            <!-- DataTable Section -->
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card card-statistics">
@@ -43,7 +79,7 @@
                                             <th></th>
                                         </tr>
                                     </thead>
-                                    <tbody></tbody> <!-- Add this line to include a tbody for DataTable -->
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>
@@ -53,6 +89,7 @@
         </div>
     </div>
 </div>
+
 <!-- Quotation List Modal -->
 <div class="modal fade" id="quotationListModal" tabindex="-1" role="dialog" aria-labelledby="quotationListModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
