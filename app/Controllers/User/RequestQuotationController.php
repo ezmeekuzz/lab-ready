@@ -331,9 +331,10 @@ class RequestQuotationController extends SessionController
                 }
 
                 // Send email to additional recipient
+                $adminQuoteReceived = view('emails/admin-quote-received', $data);
                 $email->setTo('rustomcodilan@gmail.com');
                 $email->setSubject('You received a new quotation!');
-                $email->setMessage($thankYouMessage);
+                $email->setMessage($adminQuoteReceived);
                 $email->setMailType('html');  // Ensure the email is sent as HTML
                 $email->send();
     
