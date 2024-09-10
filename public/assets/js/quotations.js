@@ -18,7 +18,8 @@ $(document).ready(function () {
 
                 // Format the content as HTML
                 let htmlContent = '<div class="book-layout">';
-                htmlContent += '<object data="' + invoiceFile + '" type="application/pdf" class="book-pdf" style="width:100%;height:500px;"></object>';
+                htmlContent += '<div id="pdfViewer" class="pdf-viewer" style="width:100%; border:1px solid #ccc;"></div>';
+                htmlContent += '<a href="' + invoiceFile + '" class="btn btn-primary mt-3" download="'+productName+'.pdf" class="btn-download-pdf">Download PDF</a>';
                 htmlContent += '<div class="book-details mt-3">';
                 htmlContent += '<div class="date mt-3"><strong>DATE:</strong> ' + quotationDate + '</div>';
                 htmlContent += '<div class="date mt-3"><strong>Amount:</strong> ' + productPrice + '</div>';
@@ -47,6 +48,29 @@ $(document).ready(function () {
 
                 // Display the formatted content in the #displayDetails div
                 $("#displayDetails").html(htmlContent);
+                const pdfUrl = invoiceFile;
+                const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                loadingTask.promise.then(function(pdf) {
+                    // Fetch the first page
+                    pdf.getPage(1).then(function(page) {
+                        const scale = 1.5;
+                        const viewport = page.getViewport({ scale: scale });
+            
+                        // Prepare canvas using PDF page dimensions
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        $("#pdfViewer").html(canvas);
+            
+                        // Render PDF page into canvas context
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+                        page.render(renderContext);
+                    });
+                });
                 $("#productName").html('<h3><i class="fa fa-flag"></i> ' + productName + '</h3>');
 
                 // Show the modal

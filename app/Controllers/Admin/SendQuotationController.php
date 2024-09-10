@@ -82,16 +82,38 @@ class SendQuotationController extends SessionController
         $inserted = $quotationsModel->insert($data);
     
         if ($inserted) {
-            $userQuotationsModel->insert([
-                'user_id' => $this->request->getPost('userId'),
-                'quotation_id' => $inserted,
-                'dateforwarded' => date('Y-m-d'),
-                'readstatus' => 'Unread'
-            ]);
-            $response = [
-                'success' => true,
-                'message' => 'Quotation forwarded successfully!',
+            $usersModel = new UsersModel();
+
+            $userDetails = $usersModel->find($this->request->getPost('userId'));
+
+            $data = [
+                'fullname' => $userDetails['fullname'],
+                'reference' => $productName,
             ];
+            $thankYouMessage = view('emails/thank-you', $data);
+    
+            $email = \Config\Services::email();
+            $email->setTo($userDetails['email']);
+            $email->setSubject('Thank you for your quotation request!');
+            $email->setMessage($thankYouMessage);
+            $email->setMailType('html');
+
+            if ($email->send()) {
+
+                $userQuotationsModel->insert([
+                    'user_id' => $this->request->getPost('userId'),
+                    'quotation_id' => $inserted,
+                    'dateforwarded' => date('Y-m-d'),
+                    'readstatus' => 'Unread'
+                ]);
+                $response = [
+                    'success' => true,
+                    'message' => 'Quotation forwarded successfully!',
+                ];
+
+            } else {
+                log_message('error', 'Failed to send thank you email to user: ' . $userEmail);
+            }
         } else {
             $response = [
                 'success' => false,

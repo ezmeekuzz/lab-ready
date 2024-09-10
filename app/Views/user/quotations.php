@@ -99,6 +99,6 @@
 </div>
 
 <?=$this->include('user/footer');?>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
 <!-- Filter functionality script -->
 <script src="<?=base_url();?>assets/js/quotations.js"></script>

@@ -335,11 +335,7 @@ class RequestQuotationController extends SessionController
                 $email->setSubject('You received a new quotation!');
                 $email->setMessage($thankYouMessage);
                 $email->setMailType('html');  // Ensure the email is sent as HTML
-                if ($email->send()) {
-                    
-                } else {
-                    
-                }
+                $email->send();
     
                 return $this->respond($response, ResponseInterface::HTTP_OK);
             } else {
