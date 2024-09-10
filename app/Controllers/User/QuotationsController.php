@@ -101,6 +101,7 @@ class QuotationsController extends SessionController
             $data = [
                 'userDetails' => $userDetails,
                 'requestQuotationDetails' => $requestQuotationDetails,
+                'quotationDetails' => $quotationDetails,
             ];
             $message = view('emails/payment-success', $data);
             // Email sending code
@@ -282,45 +283,53 @@ class QuotationsController extends SessionController
     public function chargeEcheck()
     {
         helper('form');
-
+    
         $address = $this->request->getPost('address');
         $city = $this->request->getPost('city');
         $state = $this->request->getPost('state');
         $zipcode = $this->request->getPost('zipcode');
         $phoneNumber = $this->request->getPost('phoneNumber');
         $quotationId = $this->request->getPost('quotationId');
-
+    
         // Get API credentials
         $config = new \Config\AuthorizeNet();
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $merchantAuthentication->setName($config->apiLoginId);
         $merchantAuthentication->setTransactionKey($config->transactionKey);
-
+    
+        // Log credentials for debugging (ensure sensitive data isn't logged in production)
+        log_message('info', 'API Login ID: ' . $config->apiLoginId);
+    
         // Create Bank Account
         $bankAccount = new AnetAPI\BankAccountType();
         $bankAccount->setRoutingNumber($this->request->getPost('routingNumber'));
         $bankAccount->setAccountNumber($this->request->getPost('accountNumber'));
-        $bankAccount->setNameOnAccount($this->request->getPost('nameOnAccount'));
-        $bankAccount->setAccountType('checking'); // Or savings
-
+        $bankAccount->setNameOnAccount($this->request->getPost('accountHolder')); // Fixed to match field from form
+        $bankAccount->setAccountType($this->request->getPost('accountType')); // Checking or Savings from form input
+    
         $payment = new AnetAPI\PaymentType();
         $payment->setBankAccount($bankAccount);
-
+    
         // Transaction Request
         $transactionRequestType = new AnetAPI\TransactionRequestType();
         $transactionRequestType->setTransactionType("authCaptureTransaction");
         $transactionRequestType->setAmount($this->request->getPost('amount'));
         $transactionRequestType->setPayment($payment);
-
+    
         // Create Transaction Request
         $request = new AnetAPI\CreateTransactionRequest();
         $request->setMerchantAuthentication($merchantAuthentication);
         $request->setTransactionRequest($transactionRequestType);
-
+    
         // Send request to Authorize.net
         $controller = new AnetController\CreateTransactionController($request);
-        $response = $controller->executeWithApiResponse($config->sandbox ? \net\authorize\api\constants\ANetEnvironment::SANDBOX : \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
-
+        $response = $controller->executeWithApiResponse(
+            $config->sandbox ? \net\authorize\api\constants\ANetEnvironment::SANDBOX : \net\authorize\api\constants\ANetEnvironment::PRODUCTION
+        );
+    
+        // Log the response for debugging
+        log_message('info', 'Authorize.net Response: ' . print_r($response, true));
+    
         // Handle response and update database
         if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
             $tresponse = $response->getTransactionResponse();
@@ -328,8 +337,7 @@ class QuotationsController extends SessionController
                 $quotationsModel = new QuotationsModel();
                 $requestQuotationsModel = new RequestQuotationModel();
                 $usersModel = new UsersModel();
-                $requestQuotationDetails = $requestQuotationsModel->where('request_quotation_id', $quotationId)->find();
-                $userDetails = $usersModel->find(session()->get('user_user_id'));
+    
                 $updated = $quotationsModel->where('quotation_id', $quotationId)
                     ->set('address', $address)
                     ->set('city', $city)
@@ -338,53 +346,53 @@ class QuotationsController extends SessionController
                     ->set('phonenumber', $phoneNumber)
                     ->set('status', 'Paid')
                     ->update();
+    
                 $quotationDetails = $quotationsModel->find($quotationId);
-
+                $requestQuotationDetails = $requestQuotationsModel->where('request_quotation_id', $quotationDetails['request_quotation_id'])->find();
+                $userDetails = $usersModel->find(session()->get('user_user_id'));
+    
+                // Send email notification
                 $data = [
                     'userDetails' => $userDetails,
                     'quotationDetails' => $quotationDetails,
                     'requestQuotationDetails' => $requestQuotationDetails
                 ];
-                    
-                $requestQuotationsModel->where('request_quotation_id', $quotationDetails['request_quotation_id'])
-                ->set('status', 'Paid')
-                ->update();
-
+    
                 $message = view('emails/payment-success', $data);
-                // Email sending code
                 $pdfFilePath = FCPATH . $quotationDetails['invoicefile'];
-                $this->adminEmailReceived($data);
+    
+                // Send Email
                 $email = \Config\Services::email();
                 $email->setTo($userDetails['email']);
-                $email->setSubject('We\'ve got you\'re payment!');
+                $email->setSubject('We\'ve got your payment!');
                 $email->setMessage($message);
                 $email->attach($pdfFilePath);
+    
                 if ($email->send()) {
-                    $response = [
+                    return $this->response->setJSON([
                         'success' => true,
-                        'message' => 'Successfully Paid!',
-                    ];
+                        'message' => 'Transaction Successful: ' . $tresponse->getMessages()[0]->getDescription()
+                    ]);
                 } else {
-                    $response = [
+                    log_message('error', 'Email sending failed.');
+                    return $this->response->setJSON([
                         'success' => false,
-                        'message' => 'Failed to send message!',
-                    ];
+                        'message' => 'Transaction successful, but email sending failed.'
+                    ]);
                 }
-                return $this->response->setJSON([
-                    'success' => true,
-                    'message' => 'Transaction Successful: ' . $tresponse->getMessages()[0]->getDescription()
-                ]);
             } else {
+                log_message('error', 'Transaction failed: ' . $tresponse->getErrors()[0]->getErrorText());
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Transaction Failed: ' . $response->getMessages()->getMessage()[0]->getText()
+                    'message' => 'Transaction Failed: ' . $tresponse->getErrors()[0]->getErrorText()
                 ]);
             }
         } else {
+            log_message('error', 'Authorize.net returned null response.');
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'No response returned'
+                'message' => 'No response returned from Authorize.net.'
             ]);
         }
-    }
+    }    
 }

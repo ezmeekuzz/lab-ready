@@ -36,7 +36,7 @@ $(document).ready(function () {
                     
                     // eCheck Button
                     htmlContent += '<button type="button" class="btn btn-success p-3 w-100" id="chargeECheck">';
-                    htmlContent += '<img src="https://example.com/path-to-echeck-icon.png" class="w-25" /> eCheck Payment';
+                    htmlContent += '<img src="https://cdn-icons-png.flaticon.com/512/4002/4002020.png" class="w-20" /> eCheck Payment';
                     htmlContent += '</button>';
                     
                     htmlContent += '</div>';
@@ -269,12 +269,12 @@ $(document).ready(function () {
                             const state = Swal.getPopup().querySelector('#state').value.trim();
                             const zipcode = Swal.getPopup().querySelector('#zipcode').value.trim();
                             const phoneNumber = Swal.getPopup().querySelector('#phonenumber').value.trim();
-                    
+                
                             if (!accountNumber || !routingNumber || !accountType || !accountHolder || !address || !city || !state || !zipcode || !phoneNumber) {
                                 Swal.showValidationMessage(`Please fill out all required fields.`);
                                 return false;
                             }
-                    
+                
                             return {
                                 accountNumber,
                                 routingNumber,
@@ -290,7 +290,7 @@ $(document).ready(function () {
                     }).then((result) => {
                         if (result.isConfirmed) {
                             const formData = result.value;
-                    
+                
                             $.ajax({
                                 type: 'POST',
                                 url: '/quotations/chargeEcheck',
@@ -309,7 +309,7 @@ $(document).ready(function () {
                                 },
                                 success: function (response) {
                                     const { success, message } = response;
-                    
+                
                                     Swal.fire({
                                         title: success ? 'Payment Successful!' : 'Payment Failed!',
                                         text: message,
@@ -331,7 +331,7 @@ $(document).ready(function () {
                             });
                         }
                     });
-                });                                    
+                });                                                  
             },
             error: function () {
                 console.error("Error fetching data");
