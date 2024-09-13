@@ -245,7 +245,7 @@ class QuotationsController extends SessionController
                     $email->setTo($userDetails['email']);
                     $email->setSubject('We\'ve got you\'re payment!');
                     $email->setMessage($message);
-                    $email->attach($pdfFilePath);
+                    $email->attach($pdfFilePath, 'attachment', $quotationDetails['filename']);
                     if ($email->send()) {
                         $response = [
                             'success' => true,
@@ -360,13 +360,15 @@ class QuotationsController extends SessionController
     
                 $message = view('emails/payment-success', $data);
                 $pdfFilePath = FCPATH . $quotationDetails['invoicefile'];
+
+                $this->adminEmailReceived($data);
     
                 // Send Email
                 $email = \Config\Services::email();
                 $email->setTo($userDetails['email']);
                 $email->setSubject('We\'ve got your payment!');
                 $email->setMessage($message);
-                $email->attach($pdfFilePath);
+                $email->attach($pdfFilePath, 'attachment', $quotationDetails['filename']);
     
                 if ($email->send()) {
                     return $this->response->setJSON([

@@ -160,8 +160,9 @@ $(document).ready(function () {
                         html: `
                             <label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="${productAmount}" readonly><br>
                             <label>Card Number:</label><input type="text" id="card_number" name="card_number" class="form-control" required><br>
-                            <label>Expiration Date (YYYY-MM):</label><input type="text" id="expiration_date" name="expiration_date" class="form-control" required><br>
+                            <label>Expiration Date (MMYY):</label><input type="text" id="expiration_date" name="expiration_date" class="form-control" required><br>
                             <label>CVV:</label><input type="text" id="cvv" name="cvv" class="form-control" required><br>
+                            <h3 class="mb-3 mt-3">Shipping Address</h3>
                             <label>Address:</label><input type="text" id="address" name="address" class="form-control" required><br>
                             <label>City:</label><input type="text" id="city" name="city" class="form-control" required><br>
                             <label>State:</label><input type="text" id="state" name="state" class="form-control" required><br>
@@ -253,6 +254,7 @@ $(document).ready(function () {
                                 <option value="savings">Savings</option>
                             </select><br>
                             <label>Account Holder Name:</label><input type="text" id="account_holder" name="account_holder" class="form-control" required><br>
+                            <h3 class="mb-3 mt-3">Shipping Address</h3>
                             <label>Address:</label><input type="text" id="address" name="address" class="form-control" required><br>
                             <label>City:</label><input type="text" id="city" name="city" class="form-control" required><br>
                             <label>State:</label><input type="text" id="state" name="state" class="form-control" required><br>
