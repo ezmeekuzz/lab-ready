@@ -43,6 +43,10 @@ class HomeController extends BaseController
                 'user_email' => $result['email'],
                 'user_phonenumber' => $result['phonenumber'],
                 'user_companyname' => $result['companyname'],
+                'user_address' => $result['address'],
+                'user_state' => $result['state'],
+                'user_city' => $result['city'],
+                'user_zipcode' => $result['zipcode'],
                 'user_usertype' => $result['usertype'],
                 'UserLoggedIn' => true,
             ]);

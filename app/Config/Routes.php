@@ -80,6 +80,8 @@ $routes->get('/requestquotationlist/downloadAssemblyFiles/(:num)', 'User\Request
 $routes->get('/requestquotation/getMaterials', 'User\RequestQuotationController::getMaterials');
 $routes->post('/requestquotationlist/deleteAssemblyFile', 'User\RequestQuotationListController::deleteAssemblyFile');
 $routes->get('/requestquotationlist/shipmentLink/(:num)', 'User\RequestQuotationListController::shipmentLink/$1');
+$routes->get('/user-info', 'User\UserInfoController::index');
+$routes->post('/userinfo/update', 'User\UserInfoController::update');
 /*User*/
 
 $routes->get('/', 'HomeController::index');

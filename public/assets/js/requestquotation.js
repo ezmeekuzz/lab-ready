@@ -369,93 +369,116 @@ $(document).ready(function() {
 
                 $('#submitAll').click(function(event) {
                     event.preventDefault();
-                
-                    let formData = new FormData();
-                    let proceed = true;
-                
-                    const assemblyFileInput = document.getElementById('assemblyFile');
-                    if (assemblyFileInput && assemblyFileInput.files.length > 0) {
-                        for (let i = 0; i < assemblyFileInput.files.length; i++) {
-                            formData.append('assemblyFile[]', assemblyFileInput.files[i]);
-                        }
-                    } else {
-                        console.error('No files selected for assemblyFile[]');
-                    }
-                
-                    $('#formsContainer').find('.card').each(function(index) {
-                        const partNumber = $(this).find('[name="partnumber"]').val();
-                        const quoteType = $(this).find('[name="quotetype"]').val();
-                        const material = $(this).find('[name="material"]').val();
-                        const quantity = $(this).find('[name="quantity"]').val();
-                        const quotationItemId = $(this).find('[name="quotation_item_id"]').val();
-                        const printFileInput = $(this).find('[name="printFile"]')[0];
-                        const printFile = printFileInput ? printFileInput.files[0] : null;
-                
-                        if (!material) {
-                            Swal.fire('Error', 'Material field is required', 'error');
-                            proceed = false;
-                            return false;
-                        }
-                
-                        if (!quantity) {
-                            Swal.fire('Error', 'Quantity field is required', 'error');
-                            proceed = false;
-                            return false;
-                        }
-                
-                        formData.append(`forms[${index}][partNumber]`, partNumber);
-                        formData.append(`forms[${index}][material]`, material);
-                        formData.append(`forms[${index}][quotetype]`, quoteType);
-                        formData.append(`forms[${index}][quantity]`, quantity);
-                        formData.append(`forms[${index}][quotation_item_id]`, quotationItemId);
-                
-                        if (printFile) {
-                            formData.append(`forms[${index}][printFile]`, printFile);
-                        }
-                    });
-                
-                    if (!proceed) {
-                        return;
-                    }
-                
+                    
+                    // First, prompt the user for the nickname
                     Swal.fire({
-                        title: 'Submitting...',
-                        text: 'Please wait while we submit your quotations.',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                
-                    $.ajax({
-                        url: '/requestquotation/submitQuotations',
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function(response) {
-                            Swal.fire('Success', 'Quotations submitted successfully!', 'success').then(() => {
-                                $('#submitQuotation')[0].reset();
-                                $('#assemblyFile').val('');
-                                $('#assemblyFile').siblings('.custom-file-label').text('Choose file');
-                                getQuotationLists();
-                            });
+                        title: 'Enter Nickname',
+                        input: 'text',
+                        inputLabel: 'Please enter a nickname',
+                        inputPlaceholder: 'Enter your nickname',
+                        inputAttributes: {
+                            'aria-label': 'Nickname'
                         },
-                        error: function(response) {
-                            Swal.close();
+                        showCancelButton: true,
+                        preConfirm: (nickname) => {
+                            return nickname;
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            let nickname = result.value;
+                            let formData = new FormData();
+                            let proceed = true;
+                            
+                            // Add the nickname to formData
+                            formData.append('nickname', nickname);
                 
-                            if (response.responseJSON && response.responseJSON.errors) {
-                                let errors = response.responseJSON.errors;
-                                let errorMessages = Object.values(errors).join("\n");
-                                Swal.fire('Error', errorMessages, 'error');
+                            const assemblyFileInput = document.getElementById('assemblyFile');
+                            if (assemblyFileInput && assemblyFileInput.files.length > 0) {
+                                for (let i = 0; i < assemblyFileInput.files.length; i++) {
+                                    formData.append('assemblyFile[]', assemblyFileInput.files[i]);
+                                }
                             } else {
-                                Swal.fire('Error', 'An unexpected error occurred.', 'error');
+                                console.error('No files selected for assemblyFile[]');
                             }
+                
+                            // Collecting data from each form/card
+                            $('#formsContainer').find('.card').each(function(index) {
+                                const partNumber = $(this).find('[name="partnumber"]').val();
+                                const quoteType = $(this).find('[name="quotetype"]').val();
+                                const material = $(this).find('[name="material"]').val();
+                                const quantity = $(this).find('[name="quantity"]').val();
+                                const quotationItemId = $(this).find('[name="quotation_item_id"]').val();
+                                const printFileInput = $(this).find('[name="printFile"]')[0];
+                                const printFile = printFileInput ? printFileInput.files[0] : null;
+                
+                                if (!material) {
+                                    Swal.fire('Error', 'Material field is required', 'error');
+                                    proceed = false;
+                                    return false;
+                                }
+                
+                                if (!quantity) {
+                                    Swal.fire('Error', 'Quantity field is required', 'error');
+                                    proceed = false;
+                                    return false;
+                                }
+                
+                                formData.append(`forms[${index}][partNumber]`, partNumber);
+                                formData.append(`forms[${index}][material]`, material);
+                                formData.append(`forms[${index}][quotetype]`, quoteType);
+                                formData.append(`forms[${index}][quantity]`, quantity);
+                                formData.append(`forms[${index}][quotation_item_id]`, quotationItemId);
+                
+                                if (printFile) {
+                                    formData.append(`forms[${index}][printFile]`, printFile);
+                                }
+                            });
+                
+                            if (!proceed) {
+                                return;
+                            }
+                
+                            // Show a loading message while the form is being submitted
+                            Swal.fire({
+                                title: 'Submitting...',
+                                text: 'Please wait while we submit your quotations.',
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                
+                            // Submit the form via AJAX
+                            $.ajax({
+                                url: '/requestquotation/submitQuotations',
+                                type: 'POST',
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function(response) {
+                                    Swal.fire('Success', 'Quotations submitted successfully!', 'success').then(() => {
+                                        $('#submitQuotation')[0].reset();
+                                        $('#assemblyFile').val('');
+                                        $('#assemblyFile').siblings('.custom-file-label').text('Choose file');
+                                        getQuotationLists();
+                                    });
+                                },
+                                error: function(response) {
+                                    Swal.close();
+                
+                                    if (response.responseJSON && response.responseJSON.errors) {
+                                        let errors = response.responseJSON.errors;
+                                        let errorMessages = Object.values(errors).join("\n");
+                                        Swal.fire('Error', errorMessages, 'error');
+                                    } else {
+                                        Swal.fire('Error', 'An unexpected error occurred.', 'error');
+                                    }
+                                }
+                            });
                         }
                     });
-                });                
+                });                              
                                          
-
                 response.forEach((item, index) => {
                     const stlContId = `stl_cont${index + 1}`;
                     const quantityId = `quantity${index + 1}`;

@@ -1,5 +1,5 @@
 <?=$this->include('header');?>
-
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <section class="jumbotron-container">
     <div class="jumbotron">
         <div class="container-fluid">
@@ -106,6 +106,7 @@
                             <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" name="password">
                         </div>
+                        <div class="g-recaptcha mb-3" data-sitekey="6LeJO_ApAAAAAKjH-ats7ZeBaHnW7s3U2HFePpS1"></div>
                         <button type="submit" class="btn btn-primary w-100 bg-black text-white p-3">Register</button>
                         <div class="col-12  mt-3">
                             <p>Already have an account ?<a href="./user/login"> Login</a></p>
@@ -120,38 +121,28 @@
 <script>
     $(document).ready(function() {
         $('#register').submit(function(event) {
-            // Prevent default form submission
             event.preventDefault();
 
-            // Get form data
-            let fullname = $('#fullname').val();
-            let email = $('#email').val();
-            let password = $('#password').val();
-            let phonenumber = $('#phonenumber').val();
-            let companyname = $('#companyname').val();
-            let address = $('#address').val();
-            let city = $('#city').val();
-            let state = $('#state').val();
-
-            // Perform client-side validation
-            if (fullname.trim() === '' || email.trim() === '' || password.trim() === '' || phonenumber.trim() === '' || companyname.trim() === '' || address.trim() === '' || city.trim() === '' || state.trim() === '') {
-                // Show error using SweetAlert2
+            // Check if reCAPTCHA is filled
+            let captchaResponse = grecaptcha.getResponse();
+            if (captchaResponse.length === 0) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: 'Please fill in the required fields!',
+                    text: 'Please complete the reCAPTCHA!',
                 });
                 return;
             }
 
-            // Send AJAX request
+            // Get form data
+            let formData = $(this).serialize() + '&g-recaptcha-response=' + captchaResponse;
+
             $.ajax({
                 type: 'POST',
                 url: '/register/insert',
-                data: $('#register').serialize(), // Serialize form data
+                data: formData,
                 dataType: 'json',
                 beforeSend: function() {
-                    // Show loading effect
                     Swal.fire({
                         title: 'Saving...',
                         allowOutsideClick: false,
@@ -161,19 +152,16 @@
                     });
                 },
                 success: function(response) {
+                    grecaptcha.reset(); // Reset reCAPTCHA
                     if (response.success) {
-                        // Redirect upon successful login
-                        $('#register')[0].reset();
                         Swal.fire({
                             icon: 'success',
                             title: 'Congrats!',
                             text: response.message,
                         }).then((result) => {
-                            // Check if modal was closed
                             window.location.href = '/user/login';
                         });
                     } else {
-                        // Show error message
                         Swal.fire({
                             icon: 'error',
                             title: 'Oops...',
@@ -182,11 +170,11 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    // Handle AJAX errors
+                    grecaptcha.reset(); // Reset reCAPTCHA
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: 'An error occurred while logging in. Please try again later.',
+                        text: 'An error occurred while registering. Please try again later.',
                     });
                     console.error(xhr.responseText);
                 }

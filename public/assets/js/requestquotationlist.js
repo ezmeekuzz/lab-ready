@@ -781,11 +781,8 @@ $(document).ready(function () {
         e.preventDefault();
     
         let quotationId = $(this).data('id');
-
-        let id = $(this).data('id');
-
         let row = $(this).closest('tr');
-        
+    
         Swal.fire({
             title: 'Are you sure?',
             text: 'Do you want to duplicate this quotation?',
@@ -796,37 +793,60 @@ $(document).ready(function () {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
+                // Prompt for nickname after confirming the duplicate action
                 Swal.fire({
-                    title: 'Duplicating...',
-                    text: 'Please wait while we duplicate your quotation.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-    
-                $.ajax({
-                    url: '/requestquotationlist/duplicateQuotation/' + quotationId,
-                    method: 'POST',
-                    success: function (response) {
-                        Swal.close();
-                        if (response.success) {
-                            Swal.fire('Success', response.message, 'success').then(() => {
-                                // Reload the table or update the UI as needed
-                                table.ajax.reload();
-                            });
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
+                    title: 'Enter Nickname',
+                    input: 'text',
+                    inputLabel: 'Please enter a nickname for the duplicated quotation',
+                    inputPlaceholder: 'Enter nickname',
+                    inputAttributes: {
+                        'aria-label': 'Nickname'
                     },
-                    error: function (response) {
-                        Swal.close();
-                        Swal.fire('Error', 'Failed to duplicate the quotation.', 'error');
+                    showCancelButton: true,
+                    preConfirm: (nickname) => {
+                        return nickname;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let nickname = result.value;
+    
+                        // Show duplicating progress
+                        Swal.fire({
+                            title: 'Duplicating...',
+                            text: 'Please wait while we duplicate your quotation.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+    
+                        // AJAX request to duplicate the quotation with the nickname
+                        $.ajax({
+                            url: '/requestquotationlist/duplicateQuotation/' + quotationId,
+                            method: 'POST',
+                            data: { nickname: nickname },
+                            success: function (response) {
+                                Swal.close();
+                                if (response.success) {
+                                    Swal.fire('Success', response.message, 'success').then(() => {
+                                        // Reload the table or update the UI as needed
+                                        table.ajax.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function (response) {
+                                Swal.close();
+                                Swal.fire('Error', 'Failed to duplicate the quotation.', 'error');
+                            }
+                        });
                     }
                 });
             }
         });
     });
+    
     $('#downloadAssembly').click(function(e) {
         e.preventDefault();
 

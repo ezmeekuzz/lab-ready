@@ -155,39 +155,31 @@ $(document).ready(function () {
                 }).render('#paypalButton');
                 // Add event listener for the "chargeCreditCard" button
                 $(document).on('click', '#chargeCreditCard', function () {
+                    // Step 1: Show Shipping Address
                     Swal.fire({
-                        title: 'Credit Card Payment',
+                        title: 'Shipping Address',
                         html: `
-                            <label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="${productAmount}" readonly><br>
-                            <label>Card Number:</label><input type="text" id="card_number" name="card_number" class="form-control" required><br>
-                            <label>Expiration Date (MMYY):</label><input type="text" id="expiration_date" name="expiration_date" class="form-control" required><br>
-                            <label>CVV:</label><input type="text" id="cvv" name="cvv" class="form-control" required><br>
-                            <h3 class="mb-3 mt-3">Shipping Address</h3>
-                            <label>Address:</label><input type="text" id="address" name="address" class="form-control" required><br>
-                            <label>City:</label><input type="text" id="city" name="city" class="form-control" required><br>
-                            <label>State:</label><input type="text" id="state" name="state" class="form-control" required><br>
-                            <label>Zip Code:</label><input type="text" id="zipcode" name="zipcode" class="form-control" required><br>
-                            <label>Phone Number:</label><input type="text" id="phonenumber" name="phonenumber" class="form-control" required><br>`,
+                            <label>Address:</label><input type="text" id="address" name="address" value="${address}" class="form-control" required><br>
+                            <label>City:</label><input type="text" id="city" name="city" value="${city}" class="form-control" required><br>
+                            <label>State:</label><input type="text" id="state" name="state" value="${state}" class="form-control" required><br>
+                            <label>Zip Code:</label><input type="text" id="zipcode" name="zipcode" value="${zipcode}" class="form-control" required><br>
+                            <label>Phone Number:</label><input type="text" id="phonenumber" name="phonenumber" value="${phonenumber}" class="form-control" required><br>`,
                         focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'Next',
                         preConfirm: () => {
-                            const cardNumber = Swal.getPopup().querySelector('#card_number').value.trim();
-                            const expirationDate = Swal.getPopup().querySelector('#expiration_date').value.trim();
-                            const cvv = Swal.getPopup().querySelector('#cvv').value.trim();
                             const address = Swal.getPopup().querySelector('#address').value.trim();
                             const city = Swal.getPopup().querySelector('#city').value.trim();
                             const state = Swal.getPopup().querySelector('#state').value.trim();
                             const zipcode = Swal.getPopup().querySelector('#zipcode').value.trim();
                             const phoneNumber = Swal.getPopup().querySelector('#phonenumber').value.trim();
                 
-                            if (!cardNumber || !expirationDate || !cvv || !address || !city || !state || !zipcode || !phoneNumber) {
+                            if (!address || !city || !state || !zipcode || !phoneNumber) {
                                 Swal.showValidationMessage(`Please fill out all required fields.`);
                                 return false;
                             }
                 
                             return {
-                                cardNumber,
-                                expirationDate,
-                                cvv,
                                 address,
                                 city,
                                 state,
@@ -197,143 +189,191 @@ $(document).ready(function () {
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            const formData = result.value;
+                            const shippingData = result.value;
+                            
+                            // Step 2: Show Payment Details
+                            Swal.fire({
+                                title: 'Credit Card Payment',
+                                html: `
+                                    <label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="${productAmount}" readonly><br>
+                                    <label>Card Number:</label><input type="text" id="card_number" name="card_number" class="form-control" required><br>
+                                    <label>Expiration Date (MMYY):</label><input type="text" id="expiration_date" name="expiration_date" class="form-control" required><br>
+                                    <label>CVV:</label><input type="text" id="cvv" name="cvv" class="form-control" required><br>`,
+                                focusConfirm: false,
+                                preConfirm: () => {
+                                    const cardNumber = Swal.getPopup().querySelector('#card_number').value.trim();
+                                    const expirationDate = Swal.getPopup().querySelector('#expiration_date').value.trim();
+                                    const cvv = Swal.getPopup().querySelector('#cvv').value.trim();
                 
-                            $.ajax({
-                                type: 'POST',
-                                url: '/quotations/chargeCreditCard',
-                                data: {
-                                    amount: $('#amount').val(),
-                                    cardNumber: formData.cardNumber,
-                                    expirationDate: formData.expirationDate,
-                                    cvv: formData.cvv,
-                                    address: formData.address,
-                                    city: formData.city,
-                                    state: formData.state,
-                                    zipcode: formData.zipcode,
-                                    phoneNumber: formData.phoneNumber,
-                                    quotationId: quotationId
-                                },
-                                success: function (response) {
-                                    const { success, message } = response;
+                                    if (!cardNumber || !expirationDate || !cvv) {
+                                        Swal.showValidationMessage(`Please fill out all required fields.`);
+                                        return false;
+                                    }
                 
-                                    Swal.fire({
-                                        title: success ? 'Payment Successful!' : 'Payment Failed!',
-                                        text: message,
-                                        icon: success ? 'success' : 'error',
-                                        willClose: () => {
-                                            window.location.href = "/quotations";
+                                    return {
+                                        cardNumber,
+                                        expirationDate,
+                                        cvv,
+                                    };
+                                }
+                            }).then((paymentResult) => {
+                                if (paymentResult.isConfirmed) {
+                                    const paymentData = paymentResult.value;
+                
+                                    // Combine both shipping and payment data
+                                    const formData = {
+                                        ...shippingData,
+                                        ...paymentData
+                                    };
+                
+                                    // Send the data via AJAX
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/quotations/chargeCreditCard',
+                                        data: {
+                                            amount: $('#amount').val(),
+                                            cardNumber: formData.cardNumber,
+                                            expirationDate: formData.expirationDate,
+                                            cvv: formData.cvv,
+                                            address: formData.address,
+                                            city: formData.city,
+                                            state: formData.state,
+                                            zipcode: formData.zipcode,
+                                            phoneNumber: formData.phoneNumber,
+                                            quotationId: quotationId
+                                        },
+                                        success: function (response) {
+                                            const { success, message } = response;
+                
+                                            Swal.fire({
+                                                title: success ? 'Payment Successful!' : 'Payment Failed!',
+                                                text: message,
+                                                icon: success ? 'success' : 'error',
+                                                willClose: () => {
+                                                    window.location.href = "/quotations";
+                                                }
+                                            });
+                                        },
+                                        error: function (xhr) {
+                                            const errorMessage = xhr.responseJSON?.message || 'An error occurred during the payment process. Please try again later.';
+                                            
+                                            Swal.fire({
+                                                title: 'Payment Error!',
+                                                text: errorMessage,
+                                                icon: 'error',
+                                            });
                                         }
-                                    });
-                                },
-                                error: function (xhr) {
-                                    const errorMessage = xhr.responseJSON?.message || 'An error occurred during the payment process. Please try again later.';
-                                    
-                                    Swal.fire({
-                                        title: 'Payment Error!',
-                                        text: errorMessage,
-                                        icon: 'error',
                                     });
                                 }
                             });
                         }
                     });
-                }); 
+                });                
                 // Add event listener for the "chargeCreditCard" button
                 $(document).on('click', '#chargeECheck', function () {
+                    // Step 1: Shipping Address
                     Swal.fire({
-                        title: 'eCheck Payment',
+                        title: 'Shipping Address',
                         html: `
-                            <label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="${productAmount}" readonly><br>
-                            <label>Bank Account Number:</label><input type="text" id="account_number" name="account_number" class="form-control" required><br>
-                            <label>Routing Number:</label><input type="text" id="routing_number" name="routing_number" class="form-control" required><br>
-                            <label>Account Type:</label>
-                            <select id="account_type" name="account_type" class="form-control" required>
-                                <option value="">Select Account Type</option>
-                                <option value="checking">Checking</option>
-                                <option value="savings">Savings</option>
-                            </select><br>
-                            <label>Account Holder Name:</label><input type="text" id="account_holder" name="account_holder" class="form-control" required><br>
-                            <h3 class="mb-3 mt-3">Shipping Address</h3>
-                            <label>Address:</label><input type="text" id="address" name="address" class="form-control" required><br>
-                            <label>City:</label><input type="text" id="city" name="city" class="form-control" required><br>
-                            <label>State:</label><input type="text" id="state" name="state" class="form-control" required><br>
-                            <label>Zip Code:</label><input type="text" id="zipcode" name="zipcode" class="form-control" required><br>
-                            <label>Phone Number:</label><input type="text" id="phonenumber" name="phonenumber" class="form-control" required><br>`,
-                        focusConfirm: false,
+                            <label>Address:</label><input type="text" id="address" name="address" value="${address}" class="form-control" required><br>
+                            <label>City:</label><input type="text" id="city" name="city" value="${city}" class="form-control" required><br>
+                            <label>State:</label><input type="text" id="state" name="state" value="${state}" class="form-control" required><br>
+                            <label>Zip Code:</label><input type="text" id="zipcode" name="zipcode" value="${zipcode}" class="form-control" required><br>
+                            <label>Phone Number:</label><input type="text" id="phonenumber" name="phonenumber" value="${phonenumber}" class="form-control" required><br>`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Next',
                         preConfirm: () => {
-                            const accountNumber = Swal.getPopup().querySelector('#account_number').value.trim();
-                            const routingNumber = Swal.getPopup().querySelector('#routing_number').value.trim();
-                            const accountType = Swal.getPopup().querySelector('#account_type').value.trim();
-                            const accountHolder = Swal.getPopup().querySelector('#account_holder').value.trim();
                             const address = Swal.getPopup().querySelector('#address').value.trim();
                             const city = Swal.getPopup().querySelector('#city').value.trim();
                             const state = Swal.getPopup().querySelector('#state').value.trim();
                             const zipcode = Swal.getPopup().querySelector('#zipcode').value.trim();
                             const phoneNumber = Swal.getPopup().querySelector('#phonenumber').value.trim();
                 
-                            if (!accountNumber || !routingNumber || !accountType || !accountHolder || !address || !city || !state || !zipcode || !phoneNumber) {
+                            if (!address || !city || !state || !zipcode || !phoneNumber) {
                                 Swal.showValidationMessage(`Please fill out all required fields.`);
                                 return false;
                             }
                 
-                            return {
-                                accountNumber,
-                                routingNumber,
-                                accountType,
-                                accountHolder,
-                                address,
-                                city,
-                                state,
-                                zipcode,
-                                phoneNumber,
-                            };
+                            return { address, city, state, zipcode, phoneNumber };
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            const formData = result.value;
+                            const shippingData = result.value;
                 
-                            $.ajax({
-                                type: 'POST',
-                                url: '/quotations/chargeEcheck',
-                                data: {
-                                    amount: $('#amount').val(),
-                                    accountNumber: formData.accountNumber,
-                                    routingNumber: formData.routingNumber,
-                                    accountType: formData.accountType,
-                                    accountHolder: formData.accountHolder,
-                                    address: formData.address,
-                                    city: formData.city,
-                                    state: formData.state,
-                                    zipcode: formData.zipcode,
-                                    phoneNumber: formData.phoneNumber,
-                                    quotationId: quotationId
-                                },
-                                success: function (response) {
-                                    const { success, message } = response;
+                            // Step 2: Payment Details
+                            Swal.fire({
+                                title: 'eCheck Payment',
+                                html: `
+                                    <label>Amount:</label><input type="text" id="amount" name="amount" class="form-control" value="${productAmount}" readonly><br>
+                                    <label>Bank Account Number:</label><input type="text" id="account_number" name="account_number" class="form-control" required><br>
+                                    <label>Routing Number:</label><input type="text" id="routing_number" name="routing_number" class="form-control" required><br>
+                                    <label>Account Type:</label>
+                                    <select id="account_type" name="account_type" class="form-control" required>
+                                        <option value="">Select Account Type</option>
+                                        <option value="checking">Checking</option>
+                                        <option value="savings">Savings</option>
+                                    </select><br>
+                                    <label>Account Holder Name:</label><input type="text" id="account_holder" name="account_holder" class="form-control" required><br>`,
+                                focusConfirm: false,
+                                showCancelButton: true,
+                                confirmButtonText: 'Submit',
+                                preConfirm: () => {
+                                    const accountNumber = Swal.getPopup().querySelector('#account_number').value.trim();
+                                    const routingNumber = Swal.getPopup().querySelector('#routing_number').value.trim();
+                                    const accountType = Swal.getPopup().querySelector('#account_type').value.trim();
+                                    const accountHolder = Swal.getPopup().querySelector('#account_holder').value.trim();
                 
-                                    Swal.fire({
-                                        title: success ? 'Payment Successful!' : 'Payment Failed!',
-                                        text: message,
-                                        icon: success ? 'success' : 'error',
-                                        willClose: () => {
-                                            window.location.href = "/quotations";
+                                    if (!accountNumber || !routingNumber || !accountType || !accountHolder) {
+                                        Swal.showValidationMessage(`Please fill out all required fields.`);
+                                        return false;
+                                    }
+                
+                                    return { accountNumber, routingNumber, accountType, accountHolder };
+                                }
+                            }).then((paymentResult) => {
+                                if (paymentResult.isConfirmed) {
+                                    const paymentData = paymentResult.value;
+                
+                                    // Combine shipping and payment data
+                                    const formData = {
+                                        ...shippingData,
+                                        ...paymentData,
+                                        amount: $('#amount').val(),
+                                        quotationId: quotationId
+                                    };
+                
+                                    // Perform the AJAX request
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/quotations/chargeEcheck',
+                                        data: formData,
+                                        success: function (response) {
+                                            const { success, message } = response;
+                
+                                            Swal.fire({
+                                                title: success ? 'Payment Successful!' : 'Payment Failed!',
+                                                text: message,
+                                                icon: success ? 'success' : 'error',
+                                                willClose: () => {
+                                                    window.location.href = "/quotations";
+                                                }
+                                            });
+                                        },
+                                        error: function (xhr) {
+                                            const errorMessage = xhr.responseJSON?.message || 'An error occurred during the payment process. Please try again later.';
+                
+                                            Swal.fire({
+                                                title: 'Payment Error!',
+                                                text: errorMessage,
+                                                icon: 'error',
+                                            });
                                         }
-                                    });
-                                },
-                                error: function (xhr) {
-                                    const errorMessage = xhr.responseJSON?.message || 'An error occurred during the payment process. Please try again later.';
-                                    
-                                    Swal.fire({
-                                        title: 'Payment Error!',
-                                        text: errorMessage,
-                                        icon: 'error',
                                     });
                                 }
                             });
                         }
                     });
-                });                                                  
+                });                                                                 
             },
             error: function () {
                 console.error("Error fetching data");

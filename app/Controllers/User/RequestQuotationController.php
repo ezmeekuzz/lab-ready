@@ -301,7 +301,8 @@ class RequestQuotationController extends SessionController
                         'print_location_original_name' => $originalFileName,
                     ]);
                 }
-                $data = ['reference' => $requestQuotation['reference']];
+                $reference = !empty($this->request->getPOST('nickname')) ? $this->request->getPOST('nickname') : $requestQuotation['reference'];
+                $data = ['reference' => $reference];
                 // Send thank you email to the user
                 $userEmail = session()->get('user_email');
                 $thankYouMessage = view('emails/thank-you', $data);
@@ -313,13 +314,15 @@ class RequestQuotationController extends SessionController
                 $email->setMailType('html');  // Ensure the email is sent as HTML
                 if ($email->send()) {
                     // Update request quotation status
+                    $updateData = [
+                        'status' => 'Pending',
+                        'reference' => $reference,
+                        'datesubmitted' => date('Y-m-d')
+                    ];
                     $requestQuotationModel
                         ->where('user_id', session()->get('user_user_id'))
                         ->where('status', 'Ongoing')
-                        ->set([
-                            'status' => 'Pending',
-                            'datesubmitted' => date('Y-m-d')
-                        ])
+                        ->set($updateData)
                         ->update();
         
                     $response = [
@@ -349,7 +352,6 @@ class RequestQuotationController extends SessionController
         return $this->failForbidden('Invalid request type');
     }
     
-
     public function delete($id)
     {
         $QuotationItemsModel = new QuotationItemsModel();

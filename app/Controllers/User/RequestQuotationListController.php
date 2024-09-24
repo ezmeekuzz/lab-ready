@@ -523,7 +523,7 @@ class RequestQuotationListController extends SessionController
         $user_id = session()->get('user_user_id');
     
         $data = [
-            'reference' => $this->generateReference(),
+            'reference' => !empty($this->request->getPOST('nickname')) ? $this->request->getPOST('nickname') : $this->generateReference(),
             'user_id' => $user_id,
             'status' => 'Duplicate',
             'datesubmitted' => date('Y-m-d')

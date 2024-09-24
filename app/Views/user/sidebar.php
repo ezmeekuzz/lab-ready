@@ -19,6 +19,12 @@
                     <span class="nav-title">Requested Quotes List</span>
                 </a>
             </li>
+            <li <?php if($currentpage == 'userinfo') { echo 'class="active"'; } ?>>
+                <a href="/user-info" aria-expanded="false">
+                    <i class="nav-icon fa fa-user"></i>
+                    <span class="nav-title">User Info</span>
+                </a>
+            </li>
             <li>
                 <a href="/user/logout" aria-expanded="false">
                     <i class="nav-icon ti ti-power-off"></i>
