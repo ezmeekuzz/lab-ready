@@ -74,6 +74,7 @@
                                             <th>Full Name</th>
                                             <th>Email Address</th>
                                             <th>Reference</th>
+                                            <th>Nickname</th>
                                             <th>Status</th>
                                             <th>Date Submitted</th>
                                             <th></th>
@@ -104,6 +105,10 @@
                     <div class="form-group">
                         <label for="productname">Quote Number</label>
                         <input type="text" name="productname" id="productname" class="form-control" placeholder="Enter Quote Number">
+                    </div>
+                    <div class="form-group">
+                        <label for="nickname">Nickname</label>
+                        <input type="text" name="nickname" id="nickname" class="form-control" placeholder="Enter Nickname">
                     </div>
                     <div class="form-group">
                         <label for="productprice">Quote Price</label>

@@ -97,7 +97,6 @@
         </div>
     </div>
 </div>
-
 <?=$this->include('user/footer');?>
 <script>
     let address = "<?=session()->get('user_address');?>";

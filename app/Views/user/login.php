@@ -12,6 +12,7 @@
     <link rel="stylesheet" type="text/css" href="<?=base_url();?>assets/css/vendors.css" />
     <link rel="stylesheet" type="text/css" href="<?=base_url();?>assets/css/style.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.min.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         .login {
             background-color: rgba(255, 255, 255, 0.8); /* Add transparency to the background */
@@ -69,6 +70,10 @@
                                                     </div>
                                                 </div>
                                                 <div class="col-12 mt-3">
+                                                    <div class="g-recaptcha mb-3" data-sitekey="6LeJO_ApAAAAAKjH-ats7ZeBaHnW7s3U2HFePpS1"></div>
+                                                    <div class="d-block d-sm-flex  align-items-center">
+                                                        <a href="../forgot-password" class="ml-auto">Forgot Password ?</a>
+                                                    </div>
                                                     <button type="submit" class="btn btn-dark text-uppercase">Sign In</button>
                                                 </div>
                                             </div>
@@ -77,6 +82,9 @@
                                         <div class="row">
                                             <div class="col-12 mt-3">
                                                 <p>Don't have an account ?<a href="../register">Register</a></p>
+                                            </div>
+                                            <div class="col-12 mt-3">
+                                                <p><a href="../forgot-password">Forgot Password?</a></p>
                                             </div>
                                         </div>
                                     </div>
@@ -100,7 +108,16 @@
             $('#signIn').submit(function(event) {
                 // Prevent default form submission
                 event.preventDefault();
-
+                // Check if reCAPTCHA is filled
+                let captchaResponse = grecaptcha.getResponse();
+                if (captchaResponse.length === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Please complete the reCAPTCHA!',
+                    });
+                    return;
+                }
                 // Get form data
                 var email = $('#email').val();
                 var password = $('#password').val();

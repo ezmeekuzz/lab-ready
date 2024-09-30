@@ -184,7 +184,10 @@ class RequestQuotationController extends SessionController
         // Get the quoteType from the request
         $quoteType = $this->request->getVar('quoteType');
         
-        $materials = $materialModel->where('quotetype', $quoteType)->findAll();
+        $materials = $materialModel
+        ->where('quotetype', $quoteType)
+        ->orderBy('arrange_order', 'ASC')
+        ->findAll();
 
         // Return the materials as a JSON response
         return $this->response->setJSON($materials);
@@ -301,7 +304,8 @@ class RequestQuotationController extends SessionController
                         'print_location_original_name' => $originalFileName,
                     ]);
                 }
-                $reference = !empty($this->request->getPOST('nickname')) ? $this->request->getPOST('nickname') : $requestQuotation['reference'];
+                $reference = $requestQuotation['reference'];
+                $nickname = !empty($this->request->getPOST('nickname')) ? $this->request->getPOST('nickname') : '';
                 $data = ['reference' => $reference];
                 // Send thank you email to the user
                 $userEmail = session()->get('user_email');
@@ -317,6 +321,7 @@ class RequestQuotationController extends SessionController
                     $updateData = [
                         'status' => 'Pending',
                         'reference' => $reference,
+                        'nickname' => $nickname,
                         'datesubmitted' => date('Y-m-d')
                     ];
                     $requestQuotationModel

@@ -72,7 +72,7 @@ class RequestQuotationListController extends SessionController
         $userQuotationsModel = new UserQuotationsModel();
         $requestQuotationModel = new RequestQuotationModel();
         $productName = $this->request->getPost('productname');
-        $productPrice = $this->request->getPost('productprice');
+        $nickName = $this->request->getPost('nickname');
         $productPrice = $this->request->getPost('productprice');
         $invoiceFile = $this->request->getFile('invoicefile');
         $requestQuotationId = $this->request->getPost('requestQuotationId');
@@ -108,6 +108,7 @@ class RequestQuotationListController extends SessionController
         $data = [
             'request_quotation_id' => $requestQuotationId,
             'productname' => $productName,
+            'nickname' => $nickName,
             'productprice' => $productPrice,
             'invoicefile' => '/uploads/PDFs/' . $newFileName,
             'filename' => $invoiceFile->getClientName(),

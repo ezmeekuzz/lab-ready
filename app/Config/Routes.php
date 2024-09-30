@@ -97,3 +97,7 @@ $routes->get('/privacy-policy', 'PrivacyPolicyController::index');
 $routes->get('/terms-and-conditions', 'TermsAndConditionsController::index');
 $routes->get('/product-pricing', 'ProductPricingController::index');
 $routes->get('/refund-and-cancellation-policy', 'RefundAndCancellationPolicyController::index');
+$routes->get('/forgot-password', 'ForgotPasswordController::index');
+$routes->post('/forgotpassword/sendEmail', 'ForgotPasswordController::sendEmail');
+$routes->get('/reset-password/(:any)', 'ResetPasswordController::index/$1');
+$routes->post('/resetpassword/reset', 'ResetPasswordController::reset');

@@ -19,6 +19,7 @@ $(document).ready(function () {
             { "data": "fullname" },
             { "data": "email" },
             { "data": "reference" },
+            { "data": "nickname" },
             {
                 "data": "status",
                 "render": function (data) {
@@ -171,6 +172,7 @@ $(document).ready(function () {
         let row = $(this).closest('tr');
 
         let productName = $('#productname').val();
+        let nickName = $('#nickname').val();
         let productPrice = $('#productprice').val();
         let invoiceFile = $('#invoicefile')[0].files[0];
         let userId = $('#user_id').val();
@@ -187,6 +189,7 @@ $(document).ready(function () {
 
         let formData = new FormData();
         formData.append('productname', productName);
+        formData.append('nickname', nickName);
         formData.append('productprice', productPrice);
         formData.append('invoicefile', invoiceFile);
         formData.append('userId', userId);

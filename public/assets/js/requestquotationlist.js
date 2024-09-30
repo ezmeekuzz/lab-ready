@@ -219,6 +219,7 @@ $(document).ready(function () {
         },
         "columns": [
             { "data": "reference" },
+            { "data": "nickname" },
             {
                 "data": "status",
                 "render": function (data, type, row) {
@@ -238,7 +239,7 @@ $(document).ready(function () {
                         link = `<a href="/requestquotationlist/shipmentLink/${row.request_quotation_id}" target="_blank" style="color: inherit; text-decoration: none;">${stat}</a>`;
                     } else {
                         statusClass = 'badge-info p-1 rounded';
-                        stat = "Order Placed. Thank you!";
+                        stat = "On Hold! Awaiting Submission";
                     }
                     return link !== '' ? `<span class="${statusClass}">${link}</span>` : `<span class="${statusClass}">${stat}</span>`;
                 }

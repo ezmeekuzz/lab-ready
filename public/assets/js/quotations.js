@@ -23,7 +23,9 @@ $(document).ready(function () {
                 htmlContent += '<div class="book-details mt-3">';
                 htmlContent += '<div class="date mt-3"><strong>DATE:</strong> ' + quotationDate + '</div>';
                 htmlContent += '<div class="date mt-3"><strong>Amount:</strong> ' + productPrice + '</div>';
-                htmlContent += '<div class="date mt-3"><strong>Track Order:</strong> <a href="/' + shipmentLink + '" target="_blank">Track Order</a></div>';
+                if (shipmentLink) {
+                    htmlContent += '<div class="date mt-3"><strong>Track Order:</strong> <a href="/' + shipmentLink + '" target="_blank">Track Order</a></div>';
+                }
                 if (response.status === 'Unpaid') {
                     htmlContent += '<div class="row">';
                     htmlContent += '<div class="mb-3 mt-3 col-lg-12">';
@@ -97,54 +99,95 @@ $(document).ready(function () {
                         }
                     },
                     onApprove: (data, actions) => {
-                        return actions.order.capture().then(function (orderData) {
-                            const shipping = orderData.purchase_units[0].shipping.address;
-                            const shippingName = orderData.purchase_units[0].shipping.name.full_name;
-
-                            // Create FormData
-                            const formData = new FormData();
-                            formData.append('quotationId', quotationId);
-                            formData.append('address', shipping.address_line_1);
-                            formData.append('city', shipping.admin_area_2);
-                            formData.append('state', shipping.admin_area_1);
-                            formData.append('zipcode', shipping.postal_code);
-                            formData.append('country_code', shipping.country_code);
-                            formData.append('full_name', shippingName);
-
-                            console.log(shipping);
-
-                            // Send AJAX request
-                            $.ajax({
-                                type: "POST",
-                                url: '/quotations/pay',
-                                processData: false,
-                                contentType: false,
-                                data: formData,
-                                success: function (data) {
-                                    if (data.success) {
-                                        Swal.fire({
-                                            title: 'Success!',
-                                            text: data.message,
-                                            icon: 'success',
-                                            willClose: () => {
-                                                window.location.href = "/quotations";
-                                            }
-                                        });
-                                    } else {
-                                        Swal.fire({
-                                            title: 'Failed!',
-                                            text: data.message,
-                                            icon: 'error',
-                                            willClose: () => {
-                                                window.location.href = "/quotations";
-                                            }
-                                        });
-                                    }
+                        // Trigger SweetAlert2 for shipping address input
+                        Swal.fire({
+                            title: 'Enter Shipping Details',
+                            html: `
+                                <form id="shippingForm">
+                                    <label for="swal-name">Full Name:</label><br>
+                                    <input type="text" id="swal-name" class="swal2-input" name="name" required><br>
+                                    <label for="swal-address">Address:</label><br>
+                                    <input type="text" id="swal-address" class="swal2-input" name="address" required><br>
+                                    <label for="swal-city">City:</label><br>
+                                    <input type="text" id="swal-city" class="swal2-input" name="city" required><br>
+                                    <label for="swal-state">State:</label><br>
+                                    <input type="text" id="swal-state" class="swal2-input" name="state" required><br>
+                                    <label for="swal-zip">Zip Code:</label><br>
+                                    <input type="text" id="swal-zip" class="swal2-input" name="zip" required><br>
+                                </form>`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Proceed to PayPal',
+                            preConfirm: () => {
+                                // Get shipping details from the form
+                                const name = document.getElementById('swal-name').value;
+                                const address = document.getElementById('swal-address').value;
+                                const city = document.getElementById('swal-city').value;
+                                const state = document.getElementById('swal-state').value;
+                                const zip = document.getElementById('swal-zip').value;
+                
+                                // Ensure all fields are filled
+                                if (!name || !address || !city || !state || !zip) {
+                                    Swal.showValidationMessage('Please fill out all the fields');
+                                    return false;
                                 }
-                            });
+                
+                                // Return shipping details for processing
+                                return {
+                                    name,
+                                    address,
+                                    city,
+                                    state,
+                                    zip
+                                };
+                            }
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                // Capture the order after the user inputs shipping details
+                                return actions.order.capture().then(function (orderData) {
+                                    const shippingDetails = result.value;
+                
+                                    // Create FormData with the captured shipping info
+                                    const formData = new FormData();
+                                    formData.append('quotationId', quotationId);
+                                    formData.append('address', shippingDetails.address);
+                                    formData.append('city', shippingDetails.city);
+                                    formData.append('state', shippingDetails.state);
+                                    formData.append('zipcode', shippingDetails.zip);
+                                    formData.append('full_name', shippingDetails.name);
+                
+                                    // Send the shipping details and capture payment via AJAX
+                                    $.ajax({
+                                        type: "POST",
+                                        url: '/quotations/pay',
+                                        processData: false,
+                                        contentType: false,
+                                        data: formData,
+                                        success: function (data) {
+                                            if (data.success) {
+                                                Swal.fire({
+                                                    title: 'Success!',
+                                                    text: data.message,
+                                                    icon: 'success',
+                                                    willClose: () => {
+                                                        window.location.href = "/quotations";
+                                                    }
+                                                });
+                                            } else {
+                                                Swal.fire({
+                                                    title: 'Failed!',
+                                                    text: data.message,
+                                                    icon: 'error',
+                                                    willClose: () => {
+                                                        window.location.href = "/quotations";
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
+                                });
+                            }
                         });
                     },
-
                     onCancel: function (data) {
                         Swal.fire({
                             title: 'Warning!',
@@ -153,6 +196,7 @@ $(document).ready(function () {
                         });
                     }
                 }).render('#paypalButton');
+                
                 // Add event listener for the "chargeCreditCard" button
                 $(document).on('click', '#chargeCreditCard', function () {
                     // Step 1: Show Shipping Address

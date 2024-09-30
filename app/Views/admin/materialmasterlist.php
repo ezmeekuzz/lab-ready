@@ -25,6 +25,18 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Row for buttons -->
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    <div class="btn-group" role="group" aria-label="Quote Type Filter">
+                        <button type="button" class="btn btn-primary" id="filter-cnc" data-quotetype="CNC Machine">CNC Machine</button>
+                        <button type="button" class="btn btn-secondary" id="filter-3d" data-quotetype="3D Printing">3D Printing</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Masterlist Table -->
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card card-statistics">
@@ -35,15 +47,16 @@
                         </div>
                         <div class="card-body">
                             <div class="datatable-wrapper table-responsive">
-                                <table id="materialmasterlist" class="table table-bordered">
+                                <table id="materialmasterlist" class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Manufacturing Service</th>
+                                            <th>Quote Type</th>
                                             <th>Material Name</th>
-                                            <th>Sequence</th>
-                                            <th></th>
+                                            <th>Order</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>
@@ -53,6 +66,8 @@
         </div>
     </div>
 </div>
+
+<!-- Order Sequence Modal -->
 <div class="modal fade" id="arrangeOrderModal" tabindex="-1" role="dialog" aria-labelledby="arrangeOrderModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -72,6 +87,7 @@
         </div>
     </div>
 </div>
+
 <?=$this->include('admin/footer');?>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
 <script src="<?=base_url();?>assets/js/materialmasterlist.js"></script>

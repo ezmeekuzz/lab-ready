@@ -74,6 +74,7 @@
                                     <thead>
                                         <tr>
                                             <th>Quotes Number</th>
+                                            <th>Nick Name</th>
                                             <th>Status</th>
                                             <th>Date Submitted</th>
                                             <th></th>

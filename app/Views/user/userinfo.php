@@ -13,7 +13,7 @@
                             <nav>
                                 <ol class="breadcrumb p-0 m-b-0">
                                     <li class="breadcrumb-item">
-                                        <a href="<?=base_url();?>user/"><i class="ti ti-home"></i></a>
+                                        <a href="<?=base_url();?>"><i class="ti ti-home"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">Dashboard</li>
                                     <li class="breadcrumb-item active text-primary" aria-current="page">Edit Account</li>

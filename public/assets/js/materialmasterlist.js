@@ -1,10 +1,16 @@
 $(document).ready(function () {
+    let quoteType = 'CNC Machine'; // Set the default filter to CNC Machine
+
+    // Initialize the DataTable
     let table = $('#materialmasterlist').DataTable({
         "processing": true,
         "serverSide": true,
         "ajax": {
             "url": "/materialmasterlist/getData",
-            "type": "POST"
+            "type": "POST",
+            "data": function (d) {
+                d.quotetype = quoteType; // Pass the selected quote type to the server
+            }
         },
         "columns": [
             { "data": "quotetype" },
@@ -19,13 +25,31 @@ $(document).ready(function () {
                 }
             }
         ],
-        "order": [[0, "asc"]], // Order by 'arrange_order'
-        "createdRow": function (row, data, dataIndex) {
-            $(row).attr('data-id', data.material_id);
-        },
-        "initComplete": function (settings, json) {
-            $(this).trigger('dt-init-complete');
-        }
+        "order": [[2, "asc"]] // Order by 'arrange_order'
+    });
+
+    // Function to toggle button styles based on active selection
+    function setActiveButton(buttonId) {
+        // Reset both buttons to 'btn-secondary'
+        $('#filter-cnc').removeClass('btn-primary').addClass('btn-secondary');
+        $('#filter-3d').removeClass('btn-primary').addClass('btn-secondary');
+        
+        // Set the clicked button to 'btn-primary' (active)
+        $(buttonId).removeClass('btn-secondary').addClass('btn-primary');
+    }
+
+    // Event handler for filtering by CNC Machine
+    $('#filter-cnc').on('click', function () {
+        quoteType = 'CNC Machine';
+        setActiveButton('#filter-cnc');  // Set the active button
+        table.ajax.reload();             // Reload the DataTable
+    });
+
+    // Event handler for filtering by 3D Printing
+    $('#filter-3d').on('click', function () {
+        quoteType = '3D Printing';
+        setActiveButton('#filter-3d');   // Set the active button
+        table.ajax.reload();             // Reload the DataTable
     });
 
     $(document).on('click', '.arrange-btn', function () {

@@ -18,7 +18,12 @@ class MaterialMasterlistController extends SessionController
     }
     public function getData()
     {
-        return datatables('materials')->make();
+        $quotetype = $this->request->getPost('quotetype');
+        $table =  datatables('materials');
+        if ($quotetype) {
+            $table->where('quotetype', $quotetype);
+        }
+        return $table->make();
     }
     public function delete($id)
     {
