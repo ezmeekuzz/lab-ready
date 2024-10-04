@@ -52,11 +52,13 @@ $(document).ready(function () {
         "createdRow": function (row, data) {
             $(row).attr('data-id', data.request_quotation_id);
             $(row).attr('data-reference', data.reference);
+            $(row).attr('data-nickname', data.nickname);
     
             $('td', row).each(function (index) {
                 if (index !== 7) { // Assuming the actions column is at index 5
                     $(this).attr('data-user-id', data.uid);
                     $(this).attr('data-reference', data.reference);
+                    $(this).attr('data-nickname', data.reference);
                 }
             });
         },
@@ -80,21 +82,23 @@ $(document).ready(function () {
     $('#requestquotationmasterlist tbody').on('click', 'td', function () {
         let cell = table.cell(this);
         let cellIndex = cell.index().column;
-
-        if (cellIndex === 6) { // If the cell index is the actions column, do nothing
+    
+        if (cellIndex === 7) { // If the cell index is the actions column, do nothing
             return;
         }
-
+    
         let userId = $(this).data('user-id');
         let requestQuotationId = $(this).closest('tr').data('id');
         let reference = $(this).closest('tr').data('reference');
-
+        let nickname = $(this).closest('tr').data('nickname') || reference; // Use reference if nickname is null
+    
         $('#user_id').val(userId);
         $('#request_quotation_id').val(requestQuotationId);
         $('#productname').val(reference);
-
+        $('#nickname').val(nickname);
+    
         $('#quotationModal').modal('show');
-    });    
+    });   
     function initializeStlViewer(stlContainer, stlLocation) {
         // Initialize StlViewer with the provided container and STL file location
         new StlViewer(stlContainer, {
