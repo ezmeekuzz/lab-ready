@@ -487,7 +487,33 @@ class RequestQuotationListController extends SessionController
                     $zip->addFile(FCPATH . $file['assembly_print_file_location'], 'assembly-files/' . basename($file['filename']));
                 }
             }
-        
+            $csvData = [];
+            $csvData[] = ['Address', 'City', 'State', 'Phone Number'];  // Add CSV headers
+            
+            // Assuming $quotationItems contains the shipping details as well
+            foreach ($quotationItems as $item) {
+                // Add each item's shipping data to the CSV
+                $csvData[] = [
+                    $item['address'] ?? 'N/A',  // Use your actual keys for shipping details
+                    $item['city'] ?? 'N/A',
+                    $item['state'] ?? 'N/A',
+                    $item['phonenumber'] ?? 'N/A',
+                ];
+            }
+            
+            // Create a temporary file for the CSV
+            $csvFilePath = tempnam(sys_get_temp_dir(), 'shipping_details');
+            $csvFile = fopen($csvFilePath, 'w');
+            
+            // Write the CSV data to the file
+            foreach ($csvData as $csvRow) {
+                fputcsv($csvFile, $csvRow);
+            }
+            
+            fclose($csvFile);
+            
+            // Add the CSV file to the zip archive in the 'quotation-files' folder
+            $zip->addFile($csvFilePath, 'quotation-files/shipping_details.csv');
             // Add quotation items files to the zip under the corresponding folders
             foreach ($quotationItems as $item) {
                 if (!empty($item['file_location']) && file_exists(FCPATH . $item['file_location'])) {

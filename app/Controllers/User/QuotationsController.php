@@ -102,6 +102,11 @@ class QuotationsController extends SessionController
                 'userDetails' => $userDetails,
                 'requestQuotationDetails' => $requestQuotationDetails,
                 'quotationDetails' => $quotationDetails,
+                'address' => $address,
+                'city' => $city,
+                'state' => $state,
+                'zipcode' => $zipcode,
+                'phonenumber' => session()->get('user_phonenumber'),
             ];
             $message = view('emails/payment-success', $data);
             // Email sending code
@@ -139,8 +144,13 @@ class QuotationsController extends SessionController
         $productName = $data['quotationDetails']['productname'];
 
         // Use the reference if it exists and is not empty, otherwise use the product name
-        $message .= "An order has been paid with this Quotation Number: " . (!empty($reference) ? $reference : $productName);
-        
+        $message .= "An order has been paid with this Quotation Number: " . (!empty($reference) ? $reference : $productName).'<br/>';
+        $message .= "<h3>Shipping Address</h3><br/>";
+        $message .= "<p>Address : ".$data['address']."</p>";
+        $message .= "<p>City : ".$data['city']."</p>";
+        $message .= "<p>State : ".$data['state']."</p>";
+        $message .= "<p>Zip Code : ".$data['zipcode']."</p>";
+        $message .= "<p>Phone Number : ".$data['phonenumber']."</p>";
         $email = \Config\Services::email();
         $email->setTo('charlie@lab-ready.net');
         $email->setSubject('Quotation Payment');
@@ -230,7 +240,12 @@ class QuotationsController extends SessionController
                     $data = [
                         'userDetails' => $userDetails,
                         'quotationDetails' => $quotationDetails,
-                        'requestQuotationDetails' => $requestQuotationDetails
+                        'requestQuotationDetails' => $requestQuotationDetails,
+                        'address' => $address,
+                        'city' => $city,
+                        'state' => $state,
+                        'zipcode' => $zipcode,
+                        'phonenumber' => $phoneNumber,
                     ];
                         
                     $requestQuotationsModel->where('request_quotation_id', $quotationDetails['request_quotation_id'])
@@ -355,7 +370,12 @@ class QuotationsController extends SessionController
                 $data = [
                     'userDetails' => $userDetails,
                     'quotationDetails' => $quotationDetails,
-                    'requestQuotationDetails' => $requestQuotationDetails
+                    'requestQuotationDetails' => $requestQuotationDetails,
+                    'address' => $address,
+                    'city' => $city,
+                    'state' => $state,
+                    'zipcode' => $zipcode,
+                    'phonenumber' => $phoneNumber,
                 ];
     
                 $message = view('emails/payment-success', $data);

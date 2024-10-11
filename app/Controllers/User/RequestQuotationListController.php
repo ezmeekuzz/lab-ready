@@ -70,6 +70,7 @@ class RequestQuotationListController extends SessionController
         $AssemblyPrintFilesModel = new AssemblyPrintFilesModel();
         $userQuotationsModel = new UserQuotationsModel();
         $quotationsModel = new QuotationsModel();
+        $shipmentsModel = new ShipmentsModel();
     
         // Find and delete related quotations
         $quotations = $quotationsModel->where('request_quotation_id', $id)->findAll();
@@ -83,6 +84,7 @@ class RequestQuotationListController extends SessionController
                     }
                 }
                 $userQuotationsModel->where('quotation_id', $quotation['quotation_id'])->delete();
+                $shipmentsModel->where('quotation_id', $quotation['quotation_id'])->delete();
             }
             $quotationsModel->where('request_quotation_id', $id)->delete();
         }
