@@ -384,6 +384,8 @@ class RequestQuotationListController extends SessionController
         $quoteTypes = $this->request->getPost('quotetype');
         $materials = $this->request->getPost('material');
         $quantities = $this->request->getPost('quantity');
+        $materialCertificate = $this->request->getPost('materialCertificate');
+        $otherInfo = $this->request->getPost('otherInfo');
         $printFiles = $this->request->getFiles('printFile');
         $assemblyFiles = $this->request->getFiles('assemblyFile');
     
@@ -434,6 +436,8 @@ class RequestQuotationListController extends SessionController
             $quoteType = $quoteTypes[$index];
             $material = $materials[$index];
             $quantity = $quantities[$index];
+            $is_material_item_required = $materialCertificate[$index];
+            $other_information = $otherInfo[$index];
             $printFile = isset($printFiles['printFile'][$index]) ? $printFiles['printFile'][$index] : null;
     
             // Check if the quotation item exists
@@ -460,6 +464,8 @@ class RequestQuotationListController extends SessionController
                     'quotetype' => $quoteType,
                     'material_id' => $material,
                     'quantity' => $quantity,
+                    'is_material_item_required' => $is_material_item_required,
+                    'other_information' => $other_information,
                     'print_location' => 'uploads/print-files/' . $newFileName, // Assuming you have a field to store the filename
                     'print_location_original_name' => $originalFileName, // Assuming you have a field to store the filename
                 ];
@@ -471,6 +477,8 @@ class RequestQuotationListController extends SessionController
                     'quotetype' => $quoteType,
                     'material_id' => $material,
                     'quantity' => $quantity,
+                    'is_material_item_required' => $is_material_item_required,
+                    'other_information' => $other_information,
                 ];
             }
             // Update the quotation item
@@ -482,6 +490,8 @@ class RequestQuotationListController extends SessionController
                 'quotetype' => $quoteType,
                 'material_id' => $material,
                 'quantity' => $quantity,
+                'is_material_item_required' => $is_material_item_required,
+                'other_information' => $other_information,
                 'printFile' => $printFile ? $printFile->getClientName() : null,
             ];
         }

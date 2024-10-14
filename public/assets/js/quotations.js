@@ -24,7 +24,7 @@ $(document).ready(function () {
                 htmlContent += '<div class="date mt-3"><strong>DATE:</strong> ' + quotationDate + '</div>';
                 htmlContent += '<div class="date mt-3"><strong>Amount:</strong> ' + productPrice + '</div>';
                 if (shipmentLink) {
-                    htmlContent += '<div class="date mt-3"><strong>Track Order:</strong> <a href="/' + shipmentLink + '" target="_blank">Track Order</a></div>';
+                    htmlContent += '<div class="date mt-3"><strong>Track Order:</strong> <a href="' + shipmentLink + '" target="_blank">Track Order</a></div>';
                 }
                 if (response.status === 'Unpaid') {
                     htmlContent += '<div class="row">';
@@ -402,7 +402,7 @@ $(document).ready(function () {
                                             </div>
                                             <div>
                                                 <h4 class="mb-2">${item.productname}</h4>
-                                                <p class="mb-2"><span style="font-weight: bold;">Reference : ${item.reference}</span></p>
+                                                <p class="mb-2"><span style="font-weight: bold;">Reference : ${item.nickname}</span></p>
                                                 <p class="mb-2"><span style="font-weight: bold; color: red;">Price : ${item.productprice}</span></p>
                                                 <p class="mb-2"><span style="font-weight: bold; color: blue;">Date : ${item.quotationdate}</span></p>
                                                 <a href="javascript:void(0)" class="btn btn-light quotationDetails" data-quotation-id="${item.quotation_id}" data-id="${item.user_quotation_id}" data-amount="${item.productprice}">Open</a>

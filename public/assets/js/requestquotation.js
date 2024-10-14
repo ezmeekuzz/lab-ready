@@ -133,6 +133,14 @@ $(document).ready(function() {
                                                         <input type="file" class="custom-file-input" id="${printFileId}" name="printFile" accept="application/pdf">
                                                     </div>
                                                 </div>
+                                                <div class="form-group form-check">
+                                                    <input type="checkbox" class="form-check-input" id="materialCertificateRequired${printFileId}" name="materialCertificate">
+                                                    <label class="form-check-label" for="materialCertificateRequired${printFileId}">Check if material certificate is required</label>
+                                                </div>
+                                                <!-- Textarea for additional information -->
+                                                <div class="form-group">
+                                                    <textarea class="form-control" name="otherInfo" id="otherInfo${printFileId}" rows="3" placeholder="Other need information (e.g., material, color, surface finish, etc.)"></textarea>
+                                                </div>
                                                 <div class="form-group">
                                                     <div class="input-group quantity-control">
                                                         <div class="input-group-prepend">
@@ -292,6 +300,14 @@ $(document).ready(function() {
                                                     <input type="file" class="custom-file-input" id="${printFileId}" name="printFile" accept="application/pdf">
                                                 </div>
                                             </div>
+                                            <div class="form-group form-check">
+                                                <input type="checkbox" class="form-check-input" id="materialCertificateRequired${printFileId}" name="materialCertificate" value="true">
+                                                <label class="form-check-label" for="materialCertificateRequired${printFileId}">Check if material certificate is required</label>
+                                            </div>
+                                            <!-- Textarea for additional information -->
+                                            <div class="form-group">
+                                                <textarea class="form-control" name="otherInfo" id="otherInfo${printFileId}" rows="3" placeholder="Other need information (e.g., material, color, surface finish, etc.)"></textarea>
+                                            </div>
                                             <div class="form-group">
                                                 <div class="input-group quantity-control">
                                                     <div class="input-group-prepend">
@@ -409,6 +425,8 @@ $(document).ready(function() {
                                 const quantity = $(this).find('[name="quantity"]').val();
                                 const quotationItemId = $(this).find('[name="quotation_item_id"]').val();
                                 const printFileInput = $(this).find('[name="printFile"]')[0];
+                                const materialCertificate = $(this).find('[name="materialCertificate"]').is(':checked');
+                                const otherInfo = $(this).find('[name="otherInfo"]').val();
                                 const printFile = printFileInput ? printFileInput.files[0] : null;
                 
                                 if (!material) {
@@ -428,6 +446,8 @@ $(document).ready(function() {
                                 formData.append(`forms[${index}][quotetype]`, quoteType);
                                 formData.append(`forms[${index}][quantity]`, quantity);
                                 formData.append(`forms[${index}][quotation_item_id]`, quotationItemId);
+                                formData.append(`forms[${index}][materialCertificate]`, materialCertificate);
+                                formData.append(`forms[${index}][otherInfo]`, otherInfo);
                 
                                 if (printFile) {
                                     formData.append(`forms[${index}][printFile]`, printFile);

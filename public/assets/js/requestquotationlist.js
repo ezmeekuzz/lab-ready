@@ -139,6 +139,14 @@ $(document).ready(function () {
                                                     <input type="file" class="custom-file-input" id="${printFileId}" name="printFile[]" accept="application/pdf">
                                                 </div>
                                             </div>
+                                            <div class="form-group form-check">
+                                                <input type="checkbox" class="form-check-input" id="materialCertificateRequired${printFileId}" name="materialCertificate" value="Yes">
+                                                <label class="form-check-label" for="materialCertificateRequired${printFileId}">Check if material certificate is required</label>
+                                            </div>
+                                            <!-- Textarea for additional information -->
+                                            <div class="form-group">
+                                                <textarea class="form-control" name="otherInfo" id="otherInfo${printFileId}" rows="3" placeholder="Other need information (e.g., material, color, surface finish, etc.)"></textarea>
+                                            </div>
                                             <div class="form-group">
                                                 <div class="input-group quantity-control">
                                                     <div class="input-group-prepend">
@@ -528,6 +536,14 @@ $(document).ready(function () {
                                                             <label class="custom-file-label" id="${printFileLabelId}" for="${printFileId}">${item.print_location_original_name}</label>
                                                             <input type="file" class="custom-file-input" id="${printFileId}" name="printFile[]" accept="application/pdf">
                                                         </div>
+                                                    </div>
+                                                    <div class="form-group form-check">
+                                                        <input type="checkbox" class="form-check-input" id="materialCertificateRequired${printFileId}" name="materialCertificate[]" value="true" ${item.is_material_item_required == 'true' ? 'checked' : ''}>
+                                                        <label class="form-check-label" for="materialCertificateRequired${printFileId}">Check if material certificate is required</label>
+                                                    </div>
+                                                    <!-- Textarea for additional information -->
+                                                    <div class="form-group">
+                                                        <textarea class="form-control" name="otherInfo[]" id="otherInfo${printFileId}" rows="3" placeholder="Other need information (e.g., material, color, surface finish, etc.)">${item.other_information}</textarea>
                                                     </div>
                                                     <div class="form-group">
                                                         <div class="input-group quantity-control">

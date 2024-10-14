@@ -271,6 +271,9 @@ class RequestQuotationController extends SessionController
                     $quantity = $form['quantity'] ?? null;
                     $quotationItemId = $form['quotation_item_id'] ?? null;
                     $printFile = $files['forms'][$index]['printFile'] ?? null;
+                    $printFile = $files['forms'][$index]['printFile'] ?? null;
+                    $materialCertificate = $form['materialCertificate'] ?? null;
+                    $otherInfo = $form['otherInfo'] ?? null;
     
                     log_message('info', 'Processing form index: ' . $index);
                     log_message('info', 'Part Number: ' . $partNumber);
@@ -278,6 +281,8 @@ class RequestQuotationController extends SessionController
                     log_message('info', 'Material: ' . $material);
                     log_message('info', 'Quantity: ' . $quantity);
                     log_message('info', 'Quotation Item ID: ' . $quotationItemId);
+                    log_message('info', 'Material is Required: ' . $materialCertificate);
+                    log_message('info', 'Other Info: ' . $otherInfo);
                     log_message('info', 'Print File: ' . print_r($printFile, true));
     
                     // Handle print file upload if a file is provided
@@ -302,6 +307,8 @@ class RequestQuotationController extends SessionController
                         'material_id' => $material,
                         'print_location' => $printFilePath,
                         'print_location_original_name' => $originalFileName,
+                        'is_material_item_required' => $materialCertificate,
+                        'other_information' => $otherInfo,
                     ]);
                 }
                 $reference = $requestQuotation['reference'];
