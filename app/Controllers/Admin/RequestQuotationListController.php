@@ -365,7 +365,7 @@ class RequestQuotationListController extends SessionController
             $sheet->setCellValue('G' . $row, ($item['print_location']) ? 'Yes' : 'No'); // Assuming print uploaded is stored in 'print_uploaded'
             $sheet->setCellValue('H' . $row, $item['quantity']); // Assuming quantity is stored in 'quantity'
             $sheet->setCellValue('I' . $row, '0.00'); // Assuming price is stored in 'price'
-            $sheet->setCellValue('J' . $row, 'Use this for the special notes'); // Assuming note is stored in 'note'
+            $sheet->setCellValue('J' . $row, ($item['other_information']) ? $item['other_information'] : 'Use this for the special notes'); // Assuming note is stored in 'note'
         
             // Format the price column as currency
             $sheet->getStyle('I' . $row)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
