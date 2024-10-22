@@ -233,30 +233,30 @@ class RequestQuotationListController extends SessionController
         ];
         
         // Apply lighter text color to specific ranges
-        $sheet->getStyle('A1:I1')->applyFromArray($lighterFontStyleArray);
-        $sheet->getStyle('A2:I2')->applyFromArray($lighterFontStyleArray);
-        $sheet->getStyle('A3:I3')->applyFromArray($lighterFontStyleArray);
-        $sheet->getStyle('A4:I4')->applyFromArray($lighterFontStyleArray);
-        $sheet->getStyle('A5:I5')->applyFromArray($lighterFontStyleArray);
+        $sheet->getStyle('A1:J1')->applyFromArray($lighterFontStyleArray);
+        $sheet->getStyle('A2:J2')->applyFromArray($lighterFontStyleArray);
+        $sheet->getStyle('A3:J3')->applyFromArray($lighterFontStyleArray);
+        $sheet->getStyle('A4:J4')->applyFromArray($lighterFontStyleArray);
+        $sheet->getStyle('A5:J5')->applyFromArray($lighterFontStyleArray);
         
         // Apply styles to the header row
-        $sheet->getStyle('A6:I6')->applyFromArray($boldHeaderStyleArray);
+        $sheet->getStyle('A6:J6')->applyFromArray($boldHeaderStyleArray);
         
         // Apply center alignment to specific cells
         $sheet->getStyle('A1')->applyFromArray($centerAlignment);
         $sheet->getStyle('B1')->applyFromArray($centerAlignment);
-        $sheet->getStyle('A6:I6')->applyFromArray($centerAlignment);
+        $sheet->getStyle('A6:J6')->applyFromArray($centerAlignment);
         
         // Apply left alignment to the rest of the cells
-        $sheet->getStyle('A2:I5')->applyFromArray($leftAlignment);
+        $sheet->getStyle('A2:J5')->applyFromArray($leftAlignment);
         
         // Set the title row
         $sheet->setCellValue('A1', 'Lab Ready');
-        $sheet->mergeCells('A1:I1');
+        $sheet->mergeCells('A1:J1');
         
         // Set the content row
         $sheet->setCellValue('A2', 'Orthopedic Prototypes - On Time and Under Budget');
-        $sheet->mergeCells('A2:I2');
+        $sheet->mergeCells('A2:J2');
         $sheet->getRowDimension(2)->setRowHeight(30); // Adjust row height for padding
         $sheet->getRowDimension(3)->setRowHeight(30); // Adjust row height for padding
         $sheet->getRowDimension(4)->setRowHeight(30); // Adjust row height for padding
@@ -265,26 +265,27 @@ class RequestQuotationListController extends SessionController
         // Set quote details
         $sheet->setCellValue('A3', 'Quote:');
         $sheet->setCellValue('B3', $requestQuotation['reference']); // Assuming reference is the quote number
-        $sheet->setCellValue('H3', $requestQuotation['fullname']); // Assuming customer name field
+        $sheet->setCellValue('I3', $requestQuotation['fullname']); // Assuming customer name field
         
         $sheet->setCellValue('A4', 'Date:');
         $sheet->setCellValue('B4', date('Y-m-d')); // Actual date
-        $sheet->setCellValue('H4', $requestQuotation['email']); // Assuming customer email field
+        $sheet->setCellValue('I4', $requestQuotation['email']); // Assuming customer email field
         
-        $sheet->setCellValue('H5', $requestQuotation['phonenumber']); // Assuming customer phone field
+        $sheet->setCellValue('I5', $requestQuotation['phonenumber']); // Assuming customer phone field
         
         // Set the header row
         $sheet->setCellValue('A6', 'Item No');
         $sheet->setCellValue('B6', 'Part Number');
         $sheet->setCellValue('C6', 'Material');
-        $sheet->setCellValue('D6', 'Special Surface Treatment');
-        $sheet->setCellValue('E6', 'Method');
-        $sheet->setCellValue('F6', 'Print Uploaded');
-        $sheet->setCellValue('G6', 'Qty');
-        $sheet->setCellValue('H6', 'Price');
-        $sheet->setCellValue('I6', 'Note');
+        $sheet->setCellValue('D6', 'Material Cert?');
+        $sheet->setCellValue('E6', 'Special Surface Treatment');
+        $sheet->setCellValue('F6', 'Method');
+        $sheet->setCellValue('G6', 'Print Uploaded');
+        $sheet->setCellValue('H6', 'Qty');
+        $sheet->setCellValue('I6', 'Price');
+        $sheet->setCellValue('J6', 'Note');        
         
-        $sheet->getStyle('A6:I6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A6:J6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         
         // Apply additional styles if needed
         $titleStyleArray = [
@@ -334,122 +335,123 @@ class RequestQuotationListController extends SessionController
         ];
         
         // Apply title style
-        $sheet->getStyle('A1:I1')->applyFromArray($titleStyleArray);
-        $sheet->getStyle('A2:I2')->applyFromArray($contentStyleArray);
+        $sheet->getStyle('A1:J1')->applyFromArray($titleStyleArray);
+        $sheet->getStyle('A2:J2')->applyFromArray($contentStyleArray);
         
         // Apply background style
-        $sheet->getStyle('A1:I6')->applyFromArray($backgroundStyleArray);
+        $sheet->getStyle('A1:J6')->applyFromArray($backgroundStyleArray);
         
         // Set column widths (approximation in units)
         $totalWidthPixels = 1500;
-        $numColumns = 9; // Columns A to I
+        $numColumns = 10; // Columns A to I
         $approxPixelsPerColumn = $totalWidthPixels / $numColumns;
         
         // Example conversion: 1 unit ≈ 8 pixels
         $approxUnitsPerColumn = $approxPixelsPerColumn / 8;
         
         // Set widths for columns A to I
-        for ($column = 'A'; $column <= 'I'; $column++) {
+        for ($column = 'A'; $column <= 'J'; $column++) {
             $sheet->getColumnDimension($column)->setWidth($approxUnitsPerColumn);
         }
         
         $row = 7;
         foreach ($quotationItems as $index => $item) {
-            $sheet->setCellValue('A' . $row, $index+1); // Assuming item number is stored in 'item_no'
+            $sheet->setCellValue('A' . $row, $index + 1); // Assuming item number is stored in 'item_no'
             $sheet->setCellValue('B' . $row, $item['partnumber']); // Assuming part number is stored in 'part_number'
             $sheet->setCellValue('C' . $row, $item['materialname']); // Assuming material is stored in 'material'
-            $sheet->setCellValue('D' . $row, '(anodizing, etc)'); // Assuming special surface treatment is stored in 'special_surface_treatment'
-            $sheet->setCellValue('E' . $row, $item['quotetype']); // Assuming method is stored in 'method'
-            $sheet->setCellValue('F' . $row, ($item['print_location']) ? 'Yes' : 'No'); // Assuming print uploaded is stored in 'print_uploaded'
-            $sheet->setCellValue('G' . $row, $item['quantity']); // Assuming quantity is stored in 'quantity'
-            $sheet->setCellValue('H' . $row, '0.00'); // Assuming price is stored in 'price'
-            $sheet->setCellValue('I' . $row, 'Add Note...'); // Assuming note is stored in 'note'
+            $sheet->setCellValue('D' . $row, ($item['is_material_item_required'] == 'true') ? 'Y' : 'N'); // Assuming material certification is stored in 'is_material_item_required'
+            $sheet->setCellValue('E' . $row, '(anodizing, etc)'); // Assuming special surface treatment is stored in 'special_surface_treatment'
+            $sheet->setCellValue('F' . $row, $item['quotetype']); // Assuming method is stored in 'method'
+            $sheet->setCellValue('G' . $row, ($item['print_location']) ? 'Yes' : 'No'); // Assuming print uploaded is stored in 'print_uploaded'
+            $sheet->setCellValue('H' . $row, $item['quantity']); // Assuming quantity is stored in 'quantity'
+            $sheet->setCellValue('I' . $row, '0.00'); // Assuming price is stored in 'price'
+            $sheet->setCellValue('J' . $row, 'Use this for the special notes'); // Assuming note is stored in 'note'
         
             // Format the price column as currency
-            $sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
+            $sheet->getStyle('I' . $row)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
         
             // Center alignment and adjust padding
-            $sheet->getStyle('A' . $row . ':I' . $row)->applyFromArray($centerAlignment);
-            $sheet->getStyle('A' . $row . ':I' . $row)->getAlignment()->setWrapText(true);
+            $sheet->getStyle('A' . $row . ':J' . $row)->applyFromArray($centerAlignment);
+            $sheet->getStyle('A' . $row . ':J' . $row)->getAlignment()->setWrapText(true);
             $sheet->getRowDimension($row)->setRowHeight(30); // Adjust row height for padding
-            $sheet->getStyle('A'.$row.':I'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $sheet->getStyle('A'.$row.':J'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $row++;
         }
         $subtotalRow = $row; // This will be the next row after the loop
-        $sheet->mergeCells('A' . $subtotalRow . ':G' . $subtotalRow);
+        $sheet->mergeCells('A' . $subtotalRow . ':H' . $subtotalRow);
         $sheet->setCellValue('A' . $subtotalRow, 'Subtotal (components):');
-        $sheet->getStyle('A'.$subtotalRow.':I'.$subtotalRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A'.$subtotalRow.':J'.$subtotalRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         // Apply styles for the subtotal row
-        $sheet->getStyle('A' . $subtotalRow . ':G' . $subtotalRow)->applyFromArray($centerAlignment);
-        $sheet->getStyle('A' . $subtotalRow . ':G' . $subtotalRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT); // Align right
+        $sheet->getStyle('A' . $subtotalRow . ':H' . $subtotalRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('A' . $subtotalRow . ':H' . $subtotalRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT); // Align right
         $sheet->getRowDimension($subtotalRow)->setRowHeight(30); // Adjust row height for padding
-        $sheet->getStyle('A' . $subtotalRow . ':G' . $subtotalRow)->applyFromArray($backgroundStyleArray);
-        $sheet->getStyle('A' . $subtotalRow . ':G' . $subtotalRow)->applyFromArray($contentStyleArray);
-        $sheet->getStyle('A' . $subtotalRow . ':G' . $subtotalRow)->applyFromArray($boldSubtotalStyleArray);
+        $sheet->getStyle('A' . $subtotalRow . ':H' . $subtotalRow)->applyFromArray($backgroundStyleArray);
+        $sheet->getStyle('A' . $subtotalRow . ':H' . $subtotalRow)->applyFromArray($contentStyleArray);
+        $sheet->getStyle('A' . $subtotalRow . ':H' . $subtotalRow)->applyFromArray($boldSubtotalStyleArray);
         
         // Set the content for columns H and I in the subtotal row
-        $sheet->setCellValue('H' . $subtotalRow, '=SUM(H7:H' . ($row - 1) . ')'); // Calculate subtotal (sum of H column cells above)
-        $sheet->setCellValue('I' . $subtotalRow, '');
+        $sheet->setCellValue('I' . $subtotalRow, '=SUM(I7:I' . ($row - 1) . ')'); // Calculate subtotal (sum of H column cells above)
+        $sheet->setCellValue('J' . $subtotalRow, 'Use this for the special notes');
         
         // Apply styles for columns H and I
-        $sheet->getStyle('H' . $subtotalRow)->getNumberFormat()->setFormatCode('$#,##0.00');
-        $sheet->getStyle('H' . $subtotalRow . ':I' . $subtotalRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('I' . $subtotalRow)->getNumberFormat()->setFormatCode('$#,##0.00');
+        $sheet->getStyle('I' . $subtotalRow . ':J' . $subtotalRow)->applyFromArray($centerAlignment);
 
         $assemblyRow = $row+1;
 
         $sheet->setCellValue('A' . $assemblyRow, '1');
-        $sheet->mergeCells('B' . $assemblyRow . ':F' . $assemblyRow);
-        $sheet->setCellValue('G' . $assemblyRow, '(Leave Blank)');
+        $sheet->mergeCells('B' . $assemblyRow . ':G' . $assemblyRow);
+        $sheet->setCellValue('I' . $assemblyRow, '(Leave Blank)');
         $sheet->setCellValue('B' . $assemblyRow, 'Fit, finish and assembly - shop hours');
 
-        $sheet->getStyle('A' . $assemblyRow . ':G' . $assemblyRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('A' . $assemblyRow . ':H' . $assemblyRow)->applyFromArray($centerAlignment);
         $sheet->getRowDimension($assemblyRow)->setRowHeight(30); // Adjust row height for padding
-        $sheet->setCellValue('H' . $assemblyRow, '0.00'); // Calculate subtotal (sum of H column cells above)
-        $sheet->setCellValue('I' . $assemblyRow, 'Add Note...');
-        $sheet->getStyle('A'.$assemblyRow.':I'.$assemblyRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->setCellValue('I' . $assemblyRow, '0.00'); // Calculate subtotal (sum of H column cells above)
+        $sheet->setCellValue('J' . $assemblyRow, 'Use this for the special notes');
+        $sheet->getStyle('A'.$assemblyRow.':J'.$assemblyRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         
         // Apply styles for columns H and I
-        $sheet->getStyle('H' . $assemblyRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
-        $sheet->getStyle('H' . $assemblyRow . ':I' . $assemblyRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('I' . $assemblyRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
+        $sheet->getStyle('I' . $assemblyRow . ':J' . $assemblyRow)->applyFromArray($centerAlignment);
 
         $shippingRow = $assemblyRow+1;
 
         $sheet->setCellValue('A' . $shippingRow, 'Shipping');
-        $sheet->mergeCells('A' . $shippingRow . ':G' . $shippingRow);
+        $sheet->mergeCells('A' . $shippingRow . ':H' . $shippingRow);
 
-        $sheet->getStyle('A' . $shippingRow . ':G' . $shippingRow)->applyFromArray($centerAlignment);
-        $sheet->getStyle('A' . $shippingRow . ':G' . $shippingRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT); // Align right
+        $sheet->getStyle('A' . $shippingRow . ':H' . $shippingRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('A' . $shippingRow . ':H' . $shippingRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT); // Align right
         $sheet->getRowDimension($shippingRow)->setRowHeight(30); // Adjust row height for padding
-        $sheet->getStyle('A' . $shippingRow . ':G' . $shippingRow)->applyFromArray($backgroundStyleArray);
-        $sheet->getStyle('A' . $shippingRow . ':G' . $shippingRow)->applyFromArray($contentStyleArray);
-        $sheet->getStyle('A' . $shippingRow . ':G' . $shippingRow)->applyFromArray($boldSubtotalStyleArray);
+        $sheet->getStyle('A' . $shippingRow . ':H' . $shippingRow)->applyFromArray($backgroundStyleArray);
+        $sheet->getStyle('A' . $shippingRow . ':H' . $shippingRow)->applyFromArray($contentStyleArray);
+        $sheet->getStyle('A' . $shippingRow . ':H' . $shippingRow)->applyFromArray($boldSubtotalStyleArray);
         
-        $sheet->setCellValue('H' . $shippingRow, '0.00'); // Calculate subtotal (sum of H column cells above)
-        $sheet->setCellValue('I' . $shippingRow, 'Add Note...');
+        $sheet->setCellValue('I' . $shippingRow, '0.00'); // Calculate subtotal (sum of H column cells above)
+        $sheet->setCellValue('J' . $shippingRow, 'Use this for the special notes');
 
         // Apply styles for columns H and I
-        $sheet->getStyle('H' . $shippingRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
-        $sheet->getStyle('H' . $shippingRow . ':I' . $shippingRow)->applyFromArray($centerAlignment);
-        $sheet->getStyle('A'.$shippingRow.':I'.$shippingRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('I' . $shippingRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
+        $sheet->getStyle('I' . $shippingRow . ':J' . $shippingRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('A'.$shippingRow.':J'.$shippingRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $totalRow = $shippingRow+1;
 
         $sheet->setCellValue('A' . $totalRow, 'Total :');
-        $sheet->mergeCells('A' . $totalRow . ':G' . $totalRow);
+        $sheet->mergeCells('A' . $totalRow . ':H' . $totalRow);
 
-        $sheet->getStyle('A' . $totalRow . ':G' . $totalRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('A' . $totalRow . ':H' . $totalRow)->applyFromArray($centerAlignment);
         $sheet->getRowDimension($totalRow)->setRowHeight(30); // Adjust row height for padding
-        $sheet->getStyle('A' . $totalRow . ':G' . $totalRow)->applyFromArray($backgroundStyleArray);
-        $sheet->getStyle('A' . $totalRow . ':G' . $totalRow)->applyFromArray($contentStyleArray);
-        $sheet->getStyle('A' . $totalRow . ':G' . $totalRow)->applyFromArray($boldSubtotalStyleArray);
+        $sheet->getStyle('A' . $totalRow . ':H' . $totalRow)->applyFromArray($backgroundStyleArray);
+        $sheet->getStyle('A' . $totalRow . ':H' . $totalRow)->applyFromArray($contentStyleArray);
+        $sheet->getStyle('A' . $totalRow . ':H' . $totalRow)->applyFromArray($boldSubtotalStyleArray);
         
-        $sheet->setCellValue('H' . $totalRow, '=SUM(H'. $subtotalRow .':H' . $shippingRow . ')'); // Calculate subtotal (sum of H column cells above)
-        $sheet->setCellValue('I' . $totalRow, 'Add Note...');
+        $sheet->setCellValue('I' . $totalRow, '=SUM(I'. $subtotalRow .':I' . $shippingRow . ')'); // Calculate subtotal (sum of H column cells above)
+        $sheet->setCellValue('J' . $totalRow, 'Use this for the special notes');
 
         // Apply styles for columns H and I
-        $sheet->getStyle('H' . $totalRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
-        $sheet->getStyle('H' . $totalRow . ':I' . $totalRow)->applyFromArray($centerAlignment);
-        $sheet->getStyle('A'.$totalRow.':I'.$totalRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('I' . $totalRow)->getNumberFormat()->setFormatCode('$#,##0.00'); // Format as USD currency
+        $sheet->getStyle('I' . $totalRow . ':J' . $totalRow)->applyFromArray($centerAlignment);
+        $sheet->getStyle('A'.$totalRow.':J'.$totalRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $signatureRow = $totalRow+1;
 
@@ -460,12 +462,12 @@ class RequestQuotationListController extends SessionController
         
         // Optionally, adjust the row height to accommodate the wrapped text
         $sheet->getRowDimension($signatureRow)->setRowHeight(-1);
-        $sheet->mergeCells('A' . $signatureRow . ':I' . $signatureRow);
+        $sheet->mergeCells('A' . $signatureRow . ':J' . $signatureRow);
         $sheet->getRowDimension($signatureRow)->setRowHeight(50); // Adjust row height for padding
-        $sheet->getStyle('A' . $signatureRow . ':I' . $signatureRow)->applyFromArray($backgroundStyleArray);
-        $sheet->getStyle('A' . $signatureRow . ':I' . $signatureRow)->applyFromArray($contentStyleArray);
-        $sheet->getStyle('A' . $signatureRow . ':I' . $signatureRow)->applyFromArray($leftAlignment);
-        $sheet->getStyle('A'.$signatureRow.':I'.$signatureRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A' . $signatureRow . ':J' . $signatureRow)->applyFromArray($backgroundStyleArray);
+        $sheet->getStyle('A' . $signatureRow . ':J' . $signatureRow)->applyFromArray($contentStyleArray);
+        $sheet->getStyle('A' . $signatureRow . ':J' . $signatureRow)->applyFromArray($leftAlignment);
+        $sheet->getStyle('A'.$signatureRow.':J'.$signatureRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // Save the spreadsheet to a temporary file
         $tempExcelFile = tempnam(sys_get_temp_dir(), 'excel') . '.xlsx';

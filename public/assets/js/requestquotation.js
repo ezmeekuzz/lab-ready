@@ -332,7 +332,7 @@ $(document).ready(function() {
 
                 $(document).on('change', '.custom-file-input', function() {
                     var file = this.files[0].name;
-                    $(this).siblings('.custom-file-label').text(file.substring(0, 20));
+                    $(this).siblings('.custom-file-label').text(file.substring(0, 200));
                 }); 
 
                 $(document).on('change', '#assemblyFile', function(event) {
