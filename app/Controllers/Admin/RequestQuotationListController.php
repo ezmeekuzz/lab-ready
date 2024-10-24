@@ -34,7 +34,8 @@ class RequestQuotationListController extends SessionController
             ->select('request_quotations.*, users.*, request_quotations.user_id as uid')
             ->join('users', 'request_quotations.user_id = users.user_id', 'LEFT JOIN')
             ->where('request_quotations.status !=', 'Ongoing')
-            ->where('request_quotations.status !=', 'Duplicate');
+            ->where('request_quotations.status !=', 'Duplicate')
+            ->where('request_quotations.status !=', 'Done');
     
         // Apply year filter if provided
         if ($year) {
